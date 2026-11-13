@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Generatore di orologi a lamelle</title>
+<style>
+:root{--bg:#1A120E;--fg:#D5C4AE;--card:#3A2418;--mut:#A88462;--ac:#A88462;--bd:#6B4A2E;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:20}
+#app{max-width:1000px;margin:0 auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+h1{font-size:20px;margin:0}h2{font-size:14px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+p{margin:4px 0}.hint{color:var(--mut);font-size:13px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px}
+.card[data-t]{display:none}.card[data-t].on{display:block}
+#side{display:grid;gap:12px}
+#view{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);padding:4px 0 6px}
+#cw{position:relative}
+#c3{width:100%;height:40vh;min-height:250px;display:block;touch-action:none;border-radius:14px;background:radial-gradient(ellipse at 50% 35%,var(--card),var(--bg));border:1px solid var(--bd);box-sizing:border-box}
+.zb{position:absolute;right:8px;top:8px;display:grid;gap:6px}.zb button{width:36px;height:36px;padding:0;font-size:18px;line-height:1;opacity:.85}
+label{display:grid;grid-template-columns:1fr auto;gap:2px 8px;margin:10px 0;font-size:14px}
+label input[type=range]{grid-column:1/3;width:100%;accent-color:var(--ac)}
+output{color:var(--mut);font-variant-numeric:tabular-nums}
+select,button,input[type=text]{font:inherit;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--fg);padding:9px 12px;box-sizing:border-box}
+select{width:100%;margin-top:6px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.row .cc{flex:1;margin:6px 0 0}
+.cc input{height:40px;padding:2px;width:100%;grid-column:1/3}
+.ck{grid-template-columns:auto 1fr;align-items:center}.ck input{grid-column:auto;width:auto}
+button{cursor:pointer}button.main{background:var(--ac);border-color:var(--ac);color:#1A120E;font-weight:600;width:100%;padding:13px}
+#tb{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}#tb button{flex:none;padding:8px 14px;font-size:13px}#tb button.on{background:var(--ac);border-color:var(--ac);color:#1A120E}
+@media (min-width:860px){#app{display:grid;grid-template-columns:1.1fr 1fr;grid-template-rows:auto 1fr;align-items:start}header,#view{grid-column:1}#view{grid-row:2;top:calc(env(safe-area-inset-top,0px) + 12px)}#side{grid-column:2;grid-row:1/3}#c3{height:68vh}}
+</style></head><body>
+<div id="app">
+<header><h1>Generatore di orologi a lamelle</h1><p class="hint">Scegli uno stile, regola le lamelle e il quadrante, poi esporta l’STL per stamparlo.</p></header>
+<section id="view"><div id="cw"><canvas id="c3"></canvas><div class="zb"><button id="zi">+</button><button id="zo">−</button><button id="zr">⌂</button></div></div><p class="hint">Trascina per ruotare, pizzica o usa la rotella per lo zoom.</p></section>
+<div id="side"><nav id="tb"><button data-t="s" class="on">Stile</button><button data-t="l">Geometria</button><button data-t="q">Quadrante</button><button data-t="b">Retro</button><button data-t="h">Lancette</button><button data-t="e">Esporta</button></nav>
+<section class="card" data-t="s"><h2>Stile</h2><div class="row" id="pre" style="margin:0 0 8px"></div>
+<select id="st"><option value="r" selected>Radiale (girandola, anelli, goccia)</option><option value="p">Lamelle parallele (onde)</option><option value="k">Rilievo colorato a livelli</option><option value="c">Linee concentriche (contorni)</option></select>
+<select id="sh" data-st="r"><option value="c" selected>Forma: cerchio</option><option value="e">Forma: ellisse</option><option value="g">Forma: goccia</option><option value="o">Forma: organica</option></select>
+<select id="ps" data-st="p"><option value="q" selected>Pannello: quadrato</option><option value="c">Pannello: cerchio</option></select>
+<select id="rt" data-st="p"><option value="c" selected>Onde concentriche</option><option value="d">Onde diagonali</option><option value="b">Conca</option></select>
+<select id="ks" data-st="kc"><option value="o" selected>Forma: organica (come la foto)</option><option value="c">Forma: cerchio</option><option value="e">Forma: ellisse</option><option value="q">Forma: quadrato arrotondato</option></select>
+<div class="row" data-st="kc"><label class="cc">Colore 1<input type="color" id="k1" value="#C8543C"></label><label class="cc">Colore 2<input type="color" id="k2" value="#6E82B0"></label><label class="cc">Colore 3<input type="color" id="k3" value="#E6DCC8"></label><label class="cc">Colore 4<input type="color" id="k4" value="#4A4A46"></label></div>
+<div id="sl1"></div></section>
+<section class="card" data-t="l"><h2>Lamelle</h2><div id="sl2"></div></section>
+<section class="card" data-t="q"><h2>Quadrante e piastra</h2><div id="sl3"></div>
+<label class="ck" data-st="rp"><input type="checkbox" id="tk" checked> Indici delle ore</label>
+<div class="row" data-st="rp"><label class="cc">Piastra<input type="color" id="cP" value="#4A4A46"></label><label class="cc">Lamelle basse<input type="color" id="cA" value="#A88462"></label><label class="cc">Lamelle alte<input type="color" id="cB" value="#D5C4AE"></label></div>
+<p class="hint">I colori sono solo per l’anteprima: l’STL non ha colori. Il foro centrale è per l’asse del movimento al quarzo.</p></section>
+<section class="card" data-t="b"><h2>Retro: incasso del movimento</h2><div id="sl4"></div>
+<p class="hint">L’incasso è un rettangolo scavato dal retro, profondo quanto il corpo posteriore. Un movimento al quarzo standard è circa 56 × 56 mm: lascia 1-2 mm di gioco. L’asse passa dal foro centrale del quadrante.</p>
+<h2 style="margin-top:14px">Come appenderlo o appoggiarlo</h2><select id="hg"><option value="a" selected>Foro a serratura per appenderlo a muro</option><option value="t">Treppiedi da scrivania (gambe da incollare)</option><option value="n">Nessuno</option></select>
+<div data-hg="t"><div id="sl5"></div><p class="hint">Le due gambe si stampano a parte, di piatto, e si incollano sul retro: insieme al bordo inferiore del quadrante formano i tre appoggi.</p></div>
+<p class="hint" data-hg="a">Il foro a serratura accoglie una vite con testa fino a 9 mm e gambo fino a 4,5 mm: si infila dal basso e si fa scorrere verso l’alto.</p></section>
+<section class="card" data-t="h"><h2>Lancette</h2><select id="hy"><option value="b" selected>Bastoncino arrotondato</option><option value="a">Affusolata</option><option value="s">Spada</option><option value="p">Punta sottile</option><option value="o">A contorno (come nella foto)</option></select>
+<div class="row"><label class="cc">Colore delle lancette<input type="color" id="hc" value="#E8E4DC"></label></div><div id="sl6"></div>
+<label class="ck"><input type="checkbox" id="h2"> Lancetta dei secondi</label><label class="ck"><input type="checkbox" id="hn" checked> Mostra le lancette in anteprima</label>
+<p class="hint">Le lancette si esportano sempre in un file separato dal quadrante. I fori sono valori tipici: misura l’asse del tuo movimento prima di stampare.</p></section>
+<section class="card" data-t="e"><h2>Esporta</h2><label>Nome file<input type="text" id="fn" value="orologio"></label>
+<button class="main" id="ex">Esporta STL (in ZIP)</button><p class="hint" id="st2">Lo ZIP contiene il quadrante (completo e a parti), le lancette e, se scelto, le gambe del treppiedi: sempre file separati.</p>
+<pre id="inf" class="hint" style="white-space:pre-line;font:inherit;margin:8px 0 0"></pre>
+<p class="hint">Stampa con la piastra sul piatto e le lamelle verso l’alto: sono sottili e alte, quindi usa 3 pareti, ventola alta e una velocità moderata.</p></section>
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id),cl=(v,a,b)=>Math.min(b,Math.max(a,v)),A2=Math.PI*2,D2R=Math.PI/180;
+const hx=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);
+const mkS=(L,t)=>L.forEach(([id,l,mn,mx,st,v,g])=>{const d=document.createElement("label");if(g)d.dataset.st=g;d.innerHTML=`<span>${l}</span><output id="o${id}">${v}</output><input id="${id}" type="range" min="${mn}" max="${mx}" step="${st}" value="${v}">`;$(t).appendChild(d)});
+mkS([["D","Diametro o lato (mm)",100,250,1,230],["sx","Deformazione della forma",0,1,.05,.6,"r"]],"sl1");
+mkS([["N","Lamelle per anello",24,200,1,100,"r"],["nr","Anelli",1,4,1,2,"r"],["t","Spessore lamella (mm)",.8,3,.1,1.4,"rp"],["h0","Altezza base (mm)",4,40,.5,14,"rp"],["amp","Ampiezza onda (mm)",0,40,.5,10,"rp"],["wm","Lobi dell\u2019onda",0,12,1,3,"r"],["sl","Inclinazione verso l\u2019esterno (%)",0,80,1,30,"r"],["tw","Torsione (gradi)",0,45,1,16,"r"],["ro","Sfasamento tra anelli (gradi)",0,30,.5,2,"r"],["hs","Gradino tra anelli (mm)",-10,10,.5,5,"r"],["rg","Spazio tra anelli (mm)",0,6,.5,1,"r"],["sg","Spazio tra lamelle (mm)",.4,4,.1,1.2,"p"],["lam","Lunghezza d\u2019onda (mm)",10,100,1,30,"p"],["dec","Smorzamento (0 = nessuno)",0,200,5,90,"p"],["ox","Centro onda X (mm)",-80,80,1,0,"p"],["oy","Centro onda Y (mm)",-80,80,1,0,"p"],["ra","Angolo onda (gradi)",0,180,1,30,"p"],["ns","Simmetria (petali)",3,16,1,8,"k"],["kr","Cicli radiali",1,6,.1,2.6,"k"],["mx","Peso del secondo ordine",0,1,.05,.35,"k"],["rc","Anelli radiali",0,1,.05,.15,"k"],["sw","Spirale",-2,2,.1,0,"k"],["wp","Distorsione",0,1.5,.05,.25,"k"],["gn","Contrasto",.6,3,.1,1.4,"k"],["ha","Altezza del rilievo (mm)",3,30,.5,12,"k"],["sp","Passo dei livelli (mm)",.4,3,.1,1,"k"],["bh","Altezza di ogni colore (mm)",1,10,.5,4,"k"],["ncol","Numero di colori",2,4,1,3,"k"],["cf","Raggio del centro piatto (mm)",0,40,1,10,"k"]],"sl2");
+mkS([["Rd","Raggio del quadrante (mm)",25,70,1,40,"rp"],["gp","Spazio quadrante-lamelle (mm)",0,10,.5,3,"rp"],["pt","Spessore piastra (mm)",2,8,.5,3],["rh","Foro del movimento \u00d8 (mm)",6,12,.5,8],["mg","Bordo della piastra (mm)",0,15,.5,4,"rp"],],"sl3");
+mkS([["pw","Larghezza incasso (mm)",40,90,.5,58],["ph","Altezza incasso (mm)",40,90,.5,58],["pd","Profondità incasso (mm)",6,30,.5,14]],"sl4");
+mkS([["ta","Inclinazione all’indietro (gradi)",10,40,1,22],["tl","Lunghezza delle gambe (mm)",50,160,1,90]],"sl5");
+mkS([["hl","Lunghezza lancetta dei minuti (mm)",40,160,1,85],["hr","Rapporto ore / minuti",.5,.9,.01,.68],["hw","Larghezza (mm)",4,16,.5,8],["ht","Spessore (mm)",1.2,5,.2,2.4],["hz","Distanza dal rilievo (mm)",2,20,.5,6],["hoh","Foro lancetta ore Ø (mm)",3,8,.1,5.5],["hom","Foro lancetta minuti Ø (mm)",1.5,6,.1,3],["hh","Ore",0,11,1,10],["mm","Minuti",0,59,1,10]],"sl6");
+mkS([["na","Numero di bracci",1,8,1,3,"c"],["la","Lunghezza dei bracci (% del raggio)",30,100,1,82,"c"],["sa","Rotazione (gradi)",0,360,1,0,"c"],["cw","Larghezza del canale (mm)",2,20,.5,5,"c"],["rw2","Larghezza delle creste (mm)",.8,4,.1,1.6,"c"],["rg2","Spazio tra le creste (mm)",.8,4,.1,1.6,"c"],["rh2","Altezza delle creste (mm)",1,12,.5,5,"c"],["eg","Distanza dal bordo (mm)",0,15,.5,3,"c"]],"sl2");
+const NUM=["D","sx","N","nr","t","h0","amp","wm","sl","tw","ro","hs","rg","sg","lam","dec","ox","oy","ra","Rd","gp","pt","rh","mg","hh","mm","ns","kr","mx","rc","sw","wp","gn","ha","sp","bh","ncol","cf","na","la","sa","cw","rw2","rg2","rh2","eg","pw","ph","pd","ta","tl","hl","hr","hw","ht","hz","hoh","hom"],STR=["st","sh","ps","rt","cP","cA","cB","ks","k1","k2","k3","k4","hy","hc","hg"],CHK=["tk","hn","h2"];
+function prm(){const q={};NUM.forEach(i=>q[i]=+$(i).value);STR.forEach(i=>q[i]=$(i).value);CHK.forEach(i=>q[i]=$(i).checked);return q}
+class Mesh{constructor(){this.V=[];this.F=[];this.C=[]}
+ add(vs,fs,col){const o=this.V.length/3;vs.forEach((v,i)=>{this.V.push(v[0],v[1],v[2]);const c=col[0].length?col[i]:col;this.C.push(c[0],c[1],c[2])});fs.forEach(f=>this.F.push(f[0]+o,f[1]+o,f[2]+o))}
+ addFlat(V,F,col){const o=this.V.length/3;for(let i=0;i<V.length;i+=3){this.V.push(V[i],V[i+1],V[i+2]);this.C.push(col[0],col[1],col[2])}for(const i of F)this.F.push(i+o)}}
+const BOXF=[[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]];
+function wedge(m,x1,y1,x2,y2,t,z0,h1,h2,col){const dx=x2-x1,dy=y2-y1,l=Math.hypot(dx,dy)||1,nx=-dy/l*t/2,ny=dx/l*t/2;
+ m.add([[x1-nx,y1-ny,z0],[x2-nx,y2-ny,z0],[x2+nx,y2+ny,z0],[x1+nx,y1+ny,z0],[x1-nx,y1-ny,z0+h1],[x2-nx,y2-ny,z0+h2],[x2+nx,y2+ny,z0+h2],[x1+nx,y1+ny,z0+h1]],BOXF,col)}
+function slat(m,x,y0,y1,t,z0,hf,cf){const n=Math.max(4,Math.ceil((y1-y0)/1.2)),vs=[],cs=[],fs=[],a=x-t/2,b=x+t/2;
+ for(let j=0;j<=n;j++){const y=y0+(y1-y0)*j/n,h=hf(x,y),c=cf(h);vs.push([a,y,z0],[a,y,z0+h],[b,y,z0],[b,y,z0+h]);cs.push(c,c,c,c)}
+ for(let j=0;j<n;j++){const p=4*j,q=p+4;fs.push([p+1,p+3,q+3],[p+1,q+3,q+1],[p,q+2,p+2],[p,q,q+2],[p,q+1,q],[p,p+1,q+1],[p+2,q+2,q+3],[p+2,q+3,p+3])}
+ fs.push([0,2,3],[0,3,1],[4*n,4*n+3,4*n+2],[4*n,4*n+1,4*n+3]);m.add(vs,fs,cs)}
+function solid(Ro,Ri,Nt){const nr=Ro.length,ni=Ri.length,V=new Float32Array((nr+ni)*Nt*3),F=[];Ro.forEach((r,i)=>V.set(r,i*Nt*3));Ri.forEach((r,i)=>V.set(r,(nr+i)*Nt*3));
+ const O=(r,j)=>r*Nt+j%Nt,I=(r,j)=>(nr+r)*Nt+j%Nt;
+ for(let r=0;r<nr-1;r++)for(let j=0;j<Nt;j++){const a=O(r,j),b=O(r,j+1),c=O(r+1,j),d=O(r+1,j+1);F.push(a,b,d,a,d,c)}
+ for(let r=0;r<ni-1;r++)for(let j=0;j<Nt;j++){const a=I(r,j),b=I(r,j+1),c=I(r+1,j),d=I(r+1,j+1);F.push(a,d,b,a,c,d)}
+ for(let j=0;j<Nt;j++)F.push(O(0,j),I(0,j+1),O(0,j+1),O(0,j),I(0,j),I(0,j+1),O(nr-1,j),O(nr-1,j+1),I(ni-1,j+1),O(nr-1,j),I(ni-1,j+1),I(ni-1,j));
+ return{V,F}}
+function gen(q,hi){if(q.st==="k")return genK(q,hi);if(q.st==="c")return genC(q,hi);const MP=new Mesh(),MB=new Mesh(),MH=new Mesh(),cP=hx(q.cP),cA=hx(q.cA),cB=hx(q.cB),pt=q.pt,z0=pt-.3,rdG=q.Rd+q.gp,w=[],lerp=u=>{u=cl(u,0,1);return[cA[0]+(cB[0]-cA[0])*u,cA[1]+(cB[1]-cA[1])*u,cA[2]+(cB[2]-cA[2])*u]};
+ let rp,nb=0,maxH=0;
+ if(q.st==="r"){const R=q.D/2,s=q.sx,ro=q.sh==="e"?th=>{const b=R*(1-.5*s);return R*b/Math.hypot(b*Math.cos(th),R*Math.sin(th))}:q.sh==="g"?th=>{const k=1-.7*s;return R*(k+(1-k)*Math.pow((1+Math.cos(th))/2,1.5))}:q.sh==="o"?th=>R*(1+.2*s*Math.cos(2*th-.6)+.14*s*Math.cos(th+1.2)+.08*s*Math.cos(3*th))/(1+.42*s):()=>R,rin=rdG,N=q.N,tw=q.tw*D2R;
+  for(let k=0;k<q.nr;k++)for(let i=0;i<N;i++){const th=A2*i/N+k*q.ro*D2R,rt=ro(th);if(rt-rin<6)continue;const b0=rin+(rt-rin)*k/q.nr,b1=rin+(rt-rin)*(k+1)/q.nr,r0=b0+(k>0?q.rg/2:0),r1=b1-(k<q.nr-1?q.rg/2:0),H=q.h0+k*q.hs+q.amp*(.5+.5*Math.sin(q.wm*th)),hi=Math.max(1.5,H),ho=Math.max(1.5,H*(1-q.sl/100));
+   maxH=Math.max(maxH,hi,ho);nb++;wedge(MB,r0*Math.cos(th),r0*Math.sin(th),r1*Math.cos(th+tw),r1*Math.sin(th+tw),q.t,z0,hi+.3,ho+.3,lerp((hi-q.h0)/Math.max(1,q.amp+q.nr*Math.abs(q.hs))))}
+  const sp=A2*rin/N-q.t;if(sp<.8)w.push(`Lamelle troppo vicine vicino al quadrante: spazio ${sp.toFixed(2)} mm (minimo 0,8). Riduci le lamelle o aumenta il quadrante.`);
+  rp=th=>Math.max(ro(th),rin+4)+q.mg}
+ else{const W=q.D,p=q.t+q.sg,n=Math.floor(W/p),x0=-(n-1)*p/2,circ=q.ps==="c",ra=q.ra*D2R,F=(x,y)=>{const r=Math.hypot(x-q.ox,y-q.oy);return q.rt==="c"?.5+.5*Math.sin(A2*r/q.lam)*(q.dec>0?Math.exp(-r/q.dec):1):q.rt==="d"?.5+.5*Math.sin(A2*(x*Math.cos(ra)+y*Math.sin(ra))/q.lam):Math.min(1,Math.pow(r/(W/2),2))},hf=(x,y)=>Math.max(1.5,q.h0+q.amp*F(x,y))+.3,cf=h=>lerp((h-q.h0)/Math.max(1,q.amp));
+  for(let i=0;i<n;i++){const x=x0+i*p,ext=circ?Math.sqrt(Math.max(0,W*W/4-x*x)):W/2;if(ext<3)continue;const s2=Math.abs(x)<rdG?Math.sqrt(rdG*rdG-x*x):0,ps=s2>0?[[-ext,-s2],[s2,ext]]:[[-ext,ext]];
+   for(const [a,b] of ps)if(b-a>3){nb++;maxH=Math.max(maxH,q.h0+q.amp);slat(MB,x,a,b,q.t,z0,hf,cf)}}
+  rp=th=>circ?W/2+q.mg:(W/2+q.mg)/Math.max(Math.abs(Math.cos(th)),Math.abs(Math.sin(th)))}
+ const Nt=720,ring=(f,z)=>{const a=new Float32Array(Nt*3);for(let j=0;j<Nt;j++){const th=A2*j/Nt,r=f(th);a[3*j]=r*Math.cos(th);a[3*j+1]=r*Math.sin(th);a[3*j+2]=z}return a},pl=solid([ring(rp,0),ring(rp,pt)],[ring(()=>q.rh/2,0),ring(()=>q.rh/2,pt)],Nt);MP.addFlat(pl.V,pl.F,cP);
+ if(q.tk)for(let h=0;h<12;h++){const a=h*30*D2R,lg=h%3===0,r0=q.Rd-(lg?9:6),r1=q.Rd-2;wedge(MP,r0*Math.sin(a),r0*Math.cos(a),r1*Math.sin(a),r1*Math.cos(a),lg?2.2:1.4,pt-.3,1.8,1.8,cB)}
+ const bz=q.pd;shiftZ(MP,bz);shiftZ(MB,bz);catM(MP,rear(q,rp,cP));rearWarn(q,rp,w);q.Rb=rp(-Math.PI/2);if(q.hn)catM(MH,hands(q,true,bz+pt+maxH+q.hz));
+ if(maxH/q.t>25)w.push(`Lamelle molto sottili rispetto all\u2019altezza (${(maxH/q.t).toFixed(0)}:1): fragili. Aumenta lo spessore o riduci l\u2019altezza.`);
+ const all=new Mesh(),o=MP.V.length/3;all.V=MP.V.concat(MB.V);all.C=MP.C.concat(MB.C);all.F=MP.F.concat(MB.F.map(i=>i+o));
+ let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z1=0;for(let i=0;i<all.V.length;i+=3){const x=all.V[i],y=all.V[i+1];if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(all.V[i+2]>z1)z1=all.V[i+2]}
+ if(x1-x0>250||y1-y0>250)w.push("Il pezzo non entra nel piatto della P1S (256 mm).");
+ const info=`Dimensioni: ${(x1-x0).toFixed(0)} \u00d7 ${(y1-y0).toFixed(0)} \u00d7 ${z1.toFixed(0)} mm\nLamelle: ${nb} \u00b7 triangoli: ${(all.F.length/3/1000).toFixed(0)} mila\n`+(w.length?w.map(x=>"\u26a0 "+x).join("\n"):"\u2713 Nessun problema rilevato");
+ return{all,MP,MB,MH,info,box:[(x0+x1)/2,(y0+y1)/2,z1/2,Math.max(x1-x0,y1-y0,z1)]}}
+const ss=(a,b,x)=>{x=cl((x-a)/(b-a),0,1);return x*x*(3-2*x)};
+function genK(q,hi){const R=q.D/2,rh=q.rh/2,Nr=hi?Math.min(300,Math.ceil(R/.5)):110,Nt=hi?800:360,st=q.sp,E=1e-4,w=[],cols=[q.k1,q.k2,q.k3,q.k4].map(hx),zb=q.pt,nc=Math.round(q.ncol);
+ const rm=th=>q.ks==="o"?R*(1+.04*Math.cos(3*th+1)+.03*Math.cos(5*th+.4)+.02*Math.cos(2*th)):q.ks==="e"?.85*R*R/Math.hypot(.85*R*Math.cos(th),R*Math.sin(th)):q.ks==="q"?R/Math.pow(Math.pow(Math.abs(Math.cos(th)),4)+Math.pow(Math.abs(Math.sin(th)),4),.25):R;
+ const PX=new Float32Array((Nr+1)*Nt),PY=new Float32Array((Nr+1)*Nt);
+ for(let j=0;j<Nt;j++){const th=A2*j/Nt,rr=rm(th);for(let i=0;i<=Nr;i++){const r=rh+(rr-rh)*i/Nr;PX[i*Nt+j]=r*Math.cos(th);PY[i*Nt+j]=r*Math.sin(th)}}
+ const fld=(r,th)=>{const x=Math.PI*r/R,u=th+q.sw*x+q.wp*Math.sin(3*x),a=1-q.mx,v=a*Math.cos(q.ns*u)*Math.sin(q.kr*x+.6)+q.mx*Math.cos(2*q.ns*u+1)*Math.cos((q.kr*.62+.8)*x)+q.rc*Math.cos((q.kr*.5+1.5)*x);return cl(.5+.5*q.gn*v/(1+q.rc*.5),0,1)*ss(q.cf,q.cf*2.2+1,r)};
+ const Q=new Float32Array(Nr*Nt);let zmax=0;
+ for(let i=0;i<Nr;i++)for(let j=0;j<Nt;j++){const j1=(j+1)%Nt,a=i*Nt+j,b=(i+1)*Nt+j,c=(i+1)*Nt+j1,d=i*Nt+j1,cx=(PX[a]+PX[b]+PX[c]+PX[d])/4,cy=(PY[a]+PY[b]+PY[c]+PY[d])/4,z=zb+Math.round(fld(Math.hypot(cx,cy),Math.atan2(cy,cx))*q.ha/st)*st;Q[i*Nt+j]=z;if(z>zmax)zmax=z}
+ const bh=Math.max(st,Math.round(q.bh/st)*st),NB=Math.max(1,Math.ceil((zmax-zb-E)/bh)),lo=k=>k===0?0:zb+k*bh,hi2=k=>k===NB-1?Infinity:zb+(k+1)*bh;
+ const V3=(n,z)=>[PX[n],PY[n],z],emit=(m,zlo,zhi,col,bottom,prev)=>{for(let i=0;i<Nr;i++)for(let j=0;j<Nt;j++){const q0=Q[i*Nt+j];if(q0<=zlo+E)continue;const t=Math.min(q0,zhi),j1=(j+1)%Nt,a=i*Nt+j,b=(i+1)*Nt+j,c=(i+1)*Nt+j1,d=i*Nt+j1;
+   if(!(prev&&q0>zhi+E))m.add([V3(a,t),V3(b,t),V3(c,t),V3(d,t)],[[0,1,2],[0,2,3]],col);
+   if(bottom)m.add([V3(a,zlo),V3(b,zlo),V3(c,zlo),V3(d,zlo)],[[0,2,1],[0,3,2]],col);
+   for(const [A,B,nq] of [[a,b,Q[i*Nt+(j+Nt-1)%Nt]],[b,c,i+1<Nr?Q[(i+1)*Nt+j]:-1],[c,d,Q[i*Nt+j1]],[d,a,i>0?Q[(i-1)*Nt+j]:-1]]){const nt=nq>zlo+E?Math.min(nq,zhi):zlo;if(t>nt+E)m.add([V3(A,nt),V3(B,nt),V3(B,t),V3(A,t)],[[0,1,2],[0,2,3]],col)}}};
+ const all=new Mesh(),MH=new Mesh();let exp;
+ if(hi){const full=new Mesh();emit(full,0,Infinity,[.5,.5,.5],true,false);exp=[["completo",full]];for(let c=0;c<nc;c++){const p=new Mesh();for(let k=0;k<NB;k++)if(k%nc===c)emit(p,lo(k),hi2(k),cols[c],true,false);if(p.F.length)exp.push(["colore"+(c+1),p])}}
+ else for(let k=0;k<NB;k++)emit(all,lo(k),hi2(k),cols[k%nc],k===0,true);
+ const bz=q.pd,RB=rear(q,rm,cols[0]);rearWarn(q,rm,w);q.Rb=rm(-Math.PI/2);if(hi){for(const [n,m] of exp)shiftZ(m,bz);catM(exp[0][1],RB);if(exp[1])catM(exp[1][1],RB)}else{shiftZ(all,bz);catM(all,RB)}if(q.hn)catM(MH,hands(q,true,bz+zmax+q.hz));
+ let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(let j=0;j<Nt;j++){const k=Nr*Nt+j;x0=Math.min(x0,PX[k]);x1=Math.max(x1,PX[k]);y0=Math.min(y0,PY[k]);y1=Math.max(y1,PY[k])}
+ if(x1-x0>250||y1-y0>250)w.push("Il pezzo non entra nel piatto della P1S (256 mm).");
+ if(st<.4)w.push("Passo dei livelli sotto 0,4 mm: meno di due layer per livello.");
+ if(nc>4)w.push("Più di 4 colori: l’AMS ne gestisce 4.");
+ if(zmax>20)w.push(`Spessore massimo ${zmax.toFixed(0)} mm: con il movimento al quarzo serve un asse lungo se il rilievo è alto vicino al centro.`);
+ const info=`Dimensioni: ${(x1-x0).toFixed(0)} × ${(y1-y0).toFixed(0)} × ${(zmax+q.pd).toFixed(0)} mm\nLivelli: ${Math.round(q.ha/st)} · fasce di colore: ${NB} (${nc} colori) · triangoli: ${(all.F.length/3/1000).toFixed(0)} mila\nSpessore al centro: ${zb} mm (foro Ø ${q.rh} mm)\n`+(w.length?w.map(x=>"⚠ "+x).join("\n"):"✓ Nessun problema rilevato");
+ return{all,MP:all,MB:all,MH,info,exp,box:[(x0+x1)/2,(y0+y1)/2,(zmax+q.pd)/2,Math.max(x1-x0,y1-y0,zmax+q.pd)]}}
+const shiftZ=(m,dz)=>{for(let i=2;i<m.V.length;i+=3)m.V[i]+=dz};
+const catM=(a,b)=>{const o=a.V.length/3;a.V=a.V.concat(b.V);a.C=a.C.concat(b.C);a.F=a.F.concat(b.F.map(i=>i+o))};
+function prism(m,P,z0,z1,col){const n=P.length,vs=[],fs=[];P.forEach(p=>vs.push([p[0],p[1],z0]));P.forEach(p=>vs.push([p[0],p[1],z1]));
+ for(let i=1;i<n-1;i++)fs.push([0,i+1,i],[n,n+i,n+i+1]);for(let i=0;i<n;i++){const j=(i+1)%n;fs.push([i,j,n+j],[i,n+j,n+i])}m.add(vs,fs,col)}
+const ringArr=(P,z)=>{const a=new Float32Array(P.length*3);P.forEach((p,i)=>{a[3*i]=p[0];a[3*i+1]=p[1];a[3*i+2]=z});return a};
+function stad(a,b,xc,n){const P=[];for(let k=0;k<=n;k++){const t=-Math.PI/2+Math.PI*k/n;P.push([xc+a+b*Math.cos(t),b*Math.sin(t)])}for(let k=0;k<=n;k++){const t=Math.PI/2+Math.PI*k/n;P.push([xc-a+b*Math.cos(t),b*Math.sin(t)])}return P}
+const outl=q=>{const R=q.D/2;return th=>q.ks==="o"?R*(1+.04*Math.cos(3*th+1)+.03*Math.cos(5*th+.4)+.02*Math.cos(2*th)):q.ks==="e"?.85*R*R/Math.hypot(.85*R*Math.cos(th),R*Math.sin(th)):q.ks==="q"?R/Math.pow(Math.pow(Math.abs(Math.cos(th)),4)+Math.pow(Math.abs(Math.sin(th)),4),.25):R};
+function hands(q,pv,zt){const M=new Mesh(),c=hx(q.hc),ht=q.ht,list=[[q.hl*q.hr,q.hw,q.hoh],[q.hl,q.hw*.85,q.hom]];if(q.h2)list.push([q.hl*1.1,1.4,1.6]);
+ list.forEach(([L,w,hole],idx)=>{const a=(idx===0?(q.hh+q.mm/60)*30:idx===1?q.mm*6:200)*D2R,z0=pv?zt+idx*(ht+.3):0,z1=z0+ht,hr=Math.max(hole/2+2.4,idx===2?2.6:5.2),xs=hr-1.2,
+  P=(x,y)=>pv?[x*Math.sin(a)-y*Math.cos(a),x*Math.cos(a)+y*Math.sin(a)]:[x,y+idx*34],pl=pts=>pts.map(p=>P(p[0],p[1])),circ=(r,n)=>Array.from({length:n},(_,i)=>[r*Math.cos(A2*i/n),r*Math.sin(A2*i/n)]);
+  const hub=solid([ringArr(pl(circ(hr,48)),z0),ringArr(pl(circ(hr,48)),z1)],[ringArr(pl(circ(hole/2,48)),z0),ringArr(pl(circ(hole/2,48)),z1)],48);M.addFlat(hub.V,hub.F,c);
+  const sty=idx===2?"t":q.hy;
+  if(sty==="o"){const x2=-.12*L,b=w/2,lw=Math.max(1.6,w*.22),aa=(L-x2)/2-b,xc=(x2+L)/2,o1=pl(stad(aa,b,xc,12)),i1=pl(stad(aa,b-lw,xc,12)),lp=solid([ringArr(o1,z0),ringArr(o1,z1)],[ringArr(i1,z0),ringArr(i1,z1)],o1.length);M.addFlat(lp.V,lp.F,c);prism(M,pl([[x2,-1.5],[0,-1.5],[0,1.5],[x2,1.5]]),z0,z1,c)}
+  else{const body=sty==="b"?stad((L-xs)/2-w/2,w/2,(xs+L)/2,10):sty==="a"?[[xs,-w*.5],[L*.9,-w*.2],[L,0],[L*.9,w*.2],[xs,w*.5]]:sty==="s"?[[xs,-w*.28],[L*.28,-w*.5],[L,0],[L*.28,w*.5],[xs,w*.28]]:sty==="p"?[[xs,-w*.35],[L,0],[xs,w*.35]]:[[xs,-.7],[L,-.4],[L,.4],[xs,.7]];
+   prism(M,pl(body),z0,z1,c);prism(M,pl([[-.24*L,-w*.28],[-xs,-w*.28],[-xs,w*.28],[-.24*L,w*.28]]),z0,z1,c)}});
+ return M}
+function props(q,pv){const M=new Mesh(),Rb=q.Rb||q.D/2,tn=Math.tan(q.ta*D2R),L=q.tl,tw=12,yb=-.62*Rb,yt=yb+42,yd=-Rb+L*tn,col=hx(q.cP),fx=Math.max(Math.min(.45*Rb,70),q.pw/2+tw/2+5);
+ for(const o of pv?[-1,1]:[0,L+14]){const T=new Mesh();prism(T,pv?[[0,yb],[L,yd],[0,yt]]:[[o,yb],[L+o,yd],[o,yt]],0,tw,col);
+  if(pv)for(let i=0;i<T.V.length;i+=3){const u=T.V[i],v=T.V[i+1],w=T.V[i+2];T.V[i]=o*fx+w-tw/2;T.V[i+1]=v;T.V[i+2]=-u}
+  catM(M,T)}
+ return M}
+function rear(q,out,col){const M=new Mesh(),Nt=720,bz=q.pd,hw=q.pw/2,hh=q.ph/2,hang=q.hg==="a"&&bz>=9,yb=hh,yt=yb+31,SW=17.6;
+ const rect=(x0,x1,y0,y1)=>th=>{const c=Math.cos(th),s=Math.sin(th);return Math.min(c>1e-9?x1/c:c<-1e-9?x0/c:1e9,s>1e-9?y1/s:s<-1e-9?y0/s:1e9)};
+ const rP=rect(-hw,hw,-hh,hh),rS=rect(-17,17,-hh,yt),inner=hang?th=>Math.max(rP(th),rS(th)):rP;
+ const ring=(f,z)=>{const a=new Float32Array(Nt*3);for(let j=0;j<Nt;j++){const th=A2*j/Nt,r=f(th);a[3*j]=r*Math.cos(th);a[3*j+1]=r*Math.sin(th);a[3*j+2]=z}return a};
+ const b=solid([ring(out,0),ring(out,bz)],[ring(inner,0),ring(inner,bz)],Nt);M.addFlat(b.V,b.F,col);
+ if(hang){const l1=2.2,l2=5.7,bx=(x0,x1,y0,y1,z0,z1)=>prism(M,[[x0,y0],[x1,y0],[x1,y1],[x0,y1]],z0,z1,col);
+  bx(-SW,SW,yb,yt+.6,l2,bz);
+  for(const [za,zb,sl] of [[0,l1,2.5],[l1,l2,4.5]]){bx(-SW,SW,yb,yb+4,za,zb);bx(-SW,-6,yb+4,yb+16,za,zb);bx(6,SW,yb+4,yb+16,za,zb);bx(-SW,-sl,yb+16,yb+27,za,zb);bx(sl,SW,yb+16,yb+27,za,zb);bx(-SW,SW,yb+27,yt+.6,za,zb)}}
+ return M}
+function rearWarn(q,out,w){let mn=1e9;const hw=q.pw/2,hh=q.ph/2;for(let j=0;j<360;j++){const th=A2*j/360,c=Math.abs(Math.cos(th)),s=Math.abs(Math.sin(th)),t=Math.min(c>1e-9?hw/c:1e9,s>1e-9?hh/s:1e9);mn=Math.min(mn,out(th)-t)}
+ if(mn<5)w.push(`L’incasso (${q.pw} × ${q.ph} mm) è troppo grande per il quadrante: restano solo ${mn.toFixed(1)} mm di bordo.`);
+ if(q.hg==="a"){if(q.pd<9)w.push("Con il foro a serratura servono almeno 9 mm di profondità dell’incasso: il foro non viene creato.");else if(q.ph/2+39>out(Math.PI/2))w.push("Il foro a serratura arriva troppo vicino al bordo: riduci l’altezza dell’incasso o ingrandisci il quadrante.")}}
+function genC(q,hi){const R=q.D/2,rm=outl(q),pt=q.pt,cols=[q.k1,q.k2].map(hx),MP=new Mesh(),MB=new Mesh(),MH=new Mesh(),w=[],Nt=720,g=hi?.35:.6,hubR=q.rh/2+2.5,n=Math.round(q.na),L=q.la/100*R,rw=q.rw2,pitch=rw+q.rg2,L0=q.cw+rw/2+.2,z0=pt-.3,h=q.rh2+.3;
+ const ring=(f,z)=>{const a=new Float32Array(Nt*3);for(let j=0;j<Nt;j++){const th=A2*j/Nt,r=f(th);a[3*j]=r*Math.cos(th);a[3*j+1]=r*Math.sin(th);a[3*j+2]=z}return a};
+ const pl=solid([ring(rm,0),ring(rm,pt)],[ring(()=>q.rh/2,0),ring(()=>q.rh/2,pt)],Nt);MP.addFlat(pl.V,pl.F,cols[0]);
+ let Rmax=0;for(let j=0;j<Nt;j++)Rmax=Math.max(Rmax,rm(A2*j/Nt));
+ const arms=[];for(let i=0;i<n;i++){const a=(90+q.sa)*D2R+A2*i/n;arms.push([L*Math.cos(a),L*Math.sin(a)])}
+ const N=Math.ceil(2*Rmax/g)+3,x0=-Rmax-g,Dg=new Float32Array(N*N),ok=new Uint8Array(N*N);
+ for(let iy=0;iy<N;iy++)for(let ix=0;ix<N;ix++){const x=x0+ix*g,y=x0+iy*g,r=Math.hypot(x,y);let d=1e9;for(const [ax,ay] of arms){const t=cl((x*ax+y*ay)/(ax*ax+ay*ay+1e-9),0,1);d=Math.min(d,Math.hypot(x-t*ax,y-t*ay))}Dg[iy*N+ix]=d;ok[iy*N+ix]=r>hubR&&r<rm(Math.atan2(y,x))-q.eg?1:0}
+ let cnt=0;const seg=(ax,ay,bx,by)=>{const dx=bx-ax,dy=by-ay,l=Math.hypot(dx,dy);if(l<1e-6)return;const e=rw*.35/l;wedge(MB,ax-dx*e,ay-dy*e,bx+dx*e,by+dy*e,rw,z0,h,h,cols[1]);cnt++};
+ for(let iy=0;iy<N-1;iy++)for(let ix=0;ix<N-1;ix++){const i0=iy*N+ix;if(!(ok[i0]&&ok[i0+1]&&ok[i0+N]&&ok[i0+N+1]))continue;const v=[Dg[i0],Dg[i0+1],Dg[i0+N+1],Dg[i0+N]],mn=Math.min(v[0],v[1],v[2],v[3]),mx=Math.max(v[0],v[1],v[2],v[3]),k0=Math.max(0,Math.ceil((mn-L0)/pitch)),k1=Math.floor((mx-L0)/pitch);
+  for(let k=k0;k<=k1;k++){const Lv=L0+k*pitch,P=[],X=[x0+ix*g,x0+(ix+1)*g,x0+(ix+1)*g,x0+ix*g],Y=[x0+iy*g,x0+iy*g,x0+(iy+1)*g,x0+(iy+1)*g];
+   for(let e=0;e<4;e++){const f=(e+1)%4,a=v[e]-Lv,b=v[f]-Lv;if((a<0)!==(b<0)){const t=a/(a-b);P.push([X[e]+(X[f]-X[e])*t,Y[e]+(Y[f]-Y[e])*t])}}
+   if(P.length===2)seg(P[0][0],P[0][1],P[1][0],P[1][1]);else if(P.length===4){seg(P[0][0],P[0][1],P[1][0],P[1][1]);seg(P[2][0],P[2][1],P[3][0],P[3][1])}}}
+ const bz=q.pd;shiftZ(MP,bz);shiftZ(MB,bz);catM(MP,rear(q,rm,cols[0]));rearWarn(q,rm,w);q.Rb=rm(-Math.PI/2);if(q.hn)catM(MH,hands(q,true,bz+pt+q.rh2+q.hz));
+ if(rw<1.2)w.push("Creste più strette di 1,2 mm: meno di tre linee con ugello da 0,4.");if(q.rh2/rw>5)w.push("Creste molto alte rispetto alla larghezza: fragili.");
+ const all=new Mesh();catM(all,MP);catM(all,MB);
+ let x1=-1e9,x0b=1e9,y1=-1e9,y0=1e9,z1=0;for(let i=0;i<all.V.length;i+=3){const x=all.V[i],y=all.V[i+1],z=all.V[i+2];if(x<x0b)x0b=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(z>z1)z1=z}
+ if(x1-x0b>250||y1-y0>250)w.push("Il pezzo non entra nel piatto della P1S (256 mm).");
+ const info=`Dimensioni: ${(x1-x0b).toFixed(0)} × ${(y1-y0).toFixed(0)} × ${z1.toFixed(0)} mm\nCreste: ${cnt} segmenti · triangoli: ${(all.F.length/3/1000).toFixed(0)} mila\n`+(w.length?w.map(x=>"⚠ "+x).join("\n"):"✓ Nessun problema rilevato");
+ return{all,MP,MB,MH,info,exp:[["completo",all],["base",MP],["creste",MB]],box:[(x0b+x1)/2,(y0+y1)/2,z1/2,Math.max(x1-x0b,y1-y0,z1)]}}
+// vista 3D
+const cv=$("c3"),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}),sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(35,1,1,5000),grp=new THREE.Group();sc.add(grp);grp.rotation.set(-.5,.45,0);
+sc.add(new THREE.HemisphereLight(0xffffff,0x554433,.75));const dl=new THREE.DirectionalLight(0xffffff,.95);dl.position.set(-150,220,260);sc.add(dl);const dl2=new THREE.DirectionalLight(0xffe2c0,.35);dl2.position.set(200,-120,120);sc.add(dl2);
+const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.6,metalness:0,side:THREE.DoubleSide});let mA=null,mH=null,zm=1,G=null;
+const draw=()=>R.render(sc,cam);
+function geo(m){const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(m.V,3));g.setAttribute("color",new THREE.Float32BufferAttribute(m.C,3));g.setIndex(m.F);const n=g.toNonIndexed();n.computeVertexNormals();return n}
+function render(){const q=prm();G=gen(q);if(q.hg==="t")catM(G.all,props(q,true));const b=G.box;
+ for(const [k,m] of [["A",G.all],["H",G.MH]]){const old=k==="A"?mA:mH;if(old){old.geometry.dispose();grp.remove(old)}let ms=null;if(m.F.length){ms=new THREE.Mesh(geo(m),mat);ms.position.set(-b[0],-b[1],-b[2]);grp.add(ms)}if(k==="A")mA=ms;else mH=ms}
+ cam.position.set(0,0,b[3]*2.1);cam.lookAt(0,0,0);$("inf").textContent=G.info;draw()}
+function rs(){const w=cv.clientWidth,h=cv.clientHeight;R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.setSize(w,h,false);cam.aspect=w/h;cam.zoom=zm;cam.updateProjectionMatrix();draw()}
+const zoomTo=z=>{zm=cl(z,.4,6);cam.zoom=zm;cam.updateProjectionMatrix();draw()};
+$("zi").onclick=()=>zoomTo(zm*1.25);$("zo").onclick=()=>zoomTo(zm/1.25);$("zr").onclick=()=>{grp.rotation.set(-.5,.45,0);zoomTo(1)};
+cv.addEventListener("wheel",e=>{e.preventDefault();zoomTo(zm*(e.deltaY<0?1.12:.89))},{passive:false});
+const PT=new Map();let dr=null,pd=1,pz=1;
+const dist=()=>{const [a,b]=[...PT.values()];return Math.hypot(a[0]-b[0],a[1]-b[1])};
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);PT.set(e.pointerId,[e.clientX,e.clientY]);if(PT.size===2){pd=dist();pz=zm;dr=null}else dr=[e.clientX,e.clientY]});
+cv.addEventListener("pointermove",e=>{if(PT.has(e.pointerId))PT.set(e.pointerId,[e.clientX,e.clientY]);if(PT.size===2){zoomTo(pz*dist()/pd);return}if(!dr)return;grp.rotation.y+=(e.clientX-dr[0])*.01;grp.rotation.x=cl(grp.rotation.x+(e.clientY-dr[1])*.01,-1.5,.6);dr=[e.clientX,e.clientY];draw()});
+const pu=e=>{PT.delete(e.pointerId);dr=null};cv.addEventListener("pointerup",pu);cv.addEventListener("pointercancel",pu);
+// controlli
+let T=0;const outs=()=>document.querySelectorAll("output").forEach(o=>{const i=$(o.id.slice(1));if(i&&i.type==="range")o.textContent=i.value});
+const vis=()=>{document.querySelectorAll("[data-st]").forEach(e=>e.style.display=e.dataset.st.includes($("st").value)?"":"none");document.querySelectorAll("[data-hg]").forEach(e=>e.style.display=e.dataset.hg===$("hg").value?"":"none")};
+const upd=()=>{outs();vis();cancelAnimationFrame(T);T=requestAnimationFrame(render)};
+$("side").addEventListener("input",upd);$("side").addEventListener("change",upd);
+const PS={"Girandola":{st:"r",sh:"c",D:230,N:100,nr:2,t:1.4,h0:14,amp:10,wm:3,sl:30,tw:16,ro:2,hs:5,rg:1,Rd:40,gp:3},
+ "Anelli a gradini":{st:"r",sh:"c",D:230,N:72,nr:4,t:1.6,h0:10,amp:4,wm:0,sl:55,tw:0,ro:2.5,hs:7,rg:1.5,Rd:42,gp:3},
+ "Goccia":{st:"r",sh:"g",sx:.75,D:240,N:90,nr:2,t:1.4,h0:12,amp:8,wm:2,sl:35,tw:8,ro:1.5,hs:4,rg:1,Rd:34,gp:2},
+ "Organico":{st:"r",sh:"o",sx:.8,D:230,N:110,nr:2,t:1.3,h0:12,amp:12,wm:4,sl:40,tw:10,ro:2,hs:5,rg:1,Rd:36,gp:3},
+ "Onde concentriche":{st:"p",ps:"q",rt:"c",D:220,t:2.4,sg:1.6,h0:6,amp:20,lam:30,dec:100,ox:0,oy:0,Rd:38,gp:4},
+ "Onde diagonali":{st:"p",ps:"q",rt:"d",D:220,t:2.4,sg:1.6,h0:6,amp:16,lam:55,ra:35,Rd:38,gp:4},
+ "Fiore a rilievo":{st:"k",ks:"o",D:230,ns:8,kr:2.6,mx:.35,rc:.15,sw:0,wp:.25,gn:1.4,ha:12,sp:1,bh:4,ncol:3,cf:10,pt:4,rh:8},
+ "Mandala":{st:"k",ks:"c",D:230,ns:12,kr:4,mx:.5,rc:.1,sw:0,wp:.15,gn:1.5,ha:12,sp:1,bh:3,ncol:3,cf:12,pt:4,rh:8},
+ "Spirale a livelli":{st:"k",ks:"c",D:230,ns:6,kr:2.2,mx:.25,rc:.2,sw:1.3,wp:.1,gn:1.5,ha:12,sp:1,bh:4,ncol:3,cf:10,pt:4,rh:8},
+ "Onde radiali":{st:"k",ks:"o",D:230,ns:4,kr:3.5,mx:.2,rc:.9,sw:0,wp:.3,gn:1.3,ha:10,sp:1,bh:3.5,ncol:3,cf:8,pt:4,rh:8},
+ "Chladni":{st:"k",ks:"e",D:230,ns:5,kr:3.4,mx:.8,rc:.3,sw:0,wp:.6,gn:1.6,ha:14,sp:1,bh:4,ncol:3,cf:10,pt:4,rh:8},
+ "Stella":{st:"k",ks:"c",D:230,ns:10,kr:1.4,mx:.1,rc:0,sw:0,wp:0,gn:1.8,ha:10,sp:.8,bh:4,ncol:2,cf:10,pt:4,rh:8},
+ "Quadro ondulato":{st:"k",ks:"q",D:230,ns:4,kr:2.8,mx:.5,rc:.25,sw:0,wp:.5,gn:1.4,ha:12,sp:1,bh:4,ncol:3,cf:10,pt:4,rh:8},
+ "Contorni a Y":{st:"c",ks:"o",D:230,na:3,la:82,sa:0,cw:5,rw2:1.6,rg2:1.6,rh2:5,eg:3,pt:3,rh:8,k1:"#D9692B",k2:"#8FB6CC",hy:"o"},
+ "Contorni a croce":{st:"c",ks:"c",D:230,na:4,la:78,sa:45,cw:5,rw2:1.6,rg2:1.6,rh2:5,eg:3,pt:3,rh:8,k1:"#D9692B",k2:"#8FB6CC"},
+ "Contorni a stella":{st:"c",ks:"c",D:230,na:6,la:62,sa:0,cw:4,rw2:1.4,rg2:1.4,rh2:4,eg:3,pt:3,rh:8,k1:"#D9692B",k2:"#8FB6CC"},
+ "Contorni a due bracci":{st:"c",ks:"e",D:230,na:2,la:80,sa:90,cw:5,rw2:1.6,rg2:1.6,rh2:5,eg:3,pt:3,rh:8,k1:"#D9692B",k2:"#8FB6CC"},
+ "Contorni a un braccio":{st:"c",ks:"o",D:230,na:1,la:75,sa:0,cw:5,rw2:1.6,rg2:1.6,rh2:5,eg:3,pt:3,rh:8,k1:"#D9692B",k2:"#8FB6CC"}};
+Object.keys(PS).forEach(k=>{const b=document.createElement("button");b.textContent=k;b.onclick=()=>{for(const i in PS[k])$(i).value=PS[k][i];upd()};$("pre").appendChild(b)});
+function tab(t){document.querySelectorAll("#side .card").forEach(c=>c.classList.toggle("on",c.dataset.t===t));[...$("tb").children].forEach(b=>b.classList.toggle("on",b.dataset.t===t))}
+$("tb").addEventListener("click",e=>{const b=e.target.closest("button");if(b)tab(b.dataset.t)});tab("s");
+// esportazione
+const CT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc=u=>{let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CT[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0},enc=s=>new TextEncoder().encode(s);
+function toSTL(V,F){const nt=F.length/3,dv=new DataView(new ArrayBuffer(84+50*nt));dv.setUint32(80,nt,true);let o=84;
+ for(let t=0;t<nt;t++){const a=F[3*t]*3,c=F[3*t+1]*3,e=F[3*t+2]*3,ux=V[c]-V[a],uy=V[c+1]-V[a+1],uz=V[c+2]-V[a+2],vx=V[e]-V[a],vy=V[e+1]-V[a+1],vz=V[e+2]-V[a+2];let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const l=Math.hypot(nx,ny,nz)||1;
+  dv.setFloat32(o,nx/l,true);dv.setFloat32(o+4,ny/l,true);dv.setFloat32(o+8,nz/l,true);o+=12;for(const k of [a,c,e]){dv.setFloat32(o,V[k],true);dv.setFloat32(o+4,V[k+1],true);dv.setFloat32(o+8,V[k+2],true);o+=12}o+=2}return new Uint8Array(dv.buffer)}
+async function zipM(list){const parts=[],cd=[];let off=0;
+ for(const f of list){const nm=enc(f.name),u=f.data,c=crc(u);let body=u,mt=0;
+  if(f.deflate&&window.CompressionStream){try{const z=new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer());if(z.length<u.length){body=z;mt=8}}catch(e){}}
+  const lh=new DataView(new ArrayBuffer(30)),ch=new DataView(new ArrayBuffer(46));
+  lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(8,mt,true);lh.setUint16(12,33,true);lh.setUint32(14,c,true);lh.setUint32(18,body.length,true);lh.setUint32(22,u.length,true);lh.setUint16(26,nm.length,true);
+  ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(10,mt,true);ch.setUint16(14,33,true);ch.setUint32(16,c,true);ch.setUint32(20,body.length,true);ch.setUint32(24,u.length,true);ch.setUint16(28,nm.length,true);ch.setUint32(42,off,true);
+  parts.push(lh.buffer,nm,body);cd.push(ch.buffer,nm);off+=30+nm.length+body.length}
+ let cs=0;for(const x of cd)cs+=x.byteLength;const ed=new DataView(new ArrayBuffer(22));ed.setUint32(0,0x06054b50,true);ed.setUint16(8,list.length,true);ed.setUint16(10,list.length,true);ed.setUint32(12,cs,true);ed.setUint32(16,off,true);
+ return new Blob([...parts,...cd,ed.buffer],{type:"application/zip"})}
+$("ex").onclick=async()=>{const st=t=>$("st2").textContent=t,d=window.claude?await window.claude.use("downloads"):null;
+ if(!d){st("Il download non \u00e8 disponibile in questa vista: apri l\u2019artefatto da claude.ai.");return}
+ st("Preparo i file\u2026");await new Promise(r=>setTimeout(r,50));
+ try{const q=prm(),g=gen(q,true),n=($("fn").value.trim()||"orologio").replace(/[^\w\-]+/g,"_");
+  const z=await zipM(((g.exp||[["completo",g.all],["piastra",g.MP],["lamelle",g.MB]]).concat([["lancette",hands(q,false)]],q.hg==="t"?[["gambe_treppiedi",props(q,false)]]:[])).map(([k,m])=>({name:n+"_"+k+".stl",data:toSTL(m.V,m.F),deflate:true})));
+  await d.save({filename:n+"_stl.zip",data:z});st("Fatto. Estrai lo ZIP (lancette e gambe del treppiedi sono file separati): "+(g.exp?"un STL completo e uno per ogni colore (importali insieme in Bambu Studio come un unico oggetto con più parti e assegna un filamento a ciascuna).":"tre STL: completo, piastra e lamelle."))}
+ catch(e){st(e&&e.code==="declined"?"Download annullato.":"Errore: "+((e&&(e.message||e.code))||e))}};
+addEventListener("resize",rs);rs();upd();
+</script></body></html>
