@@ -245,12 +245,21 @@ async function zipM(list){const parts=[],cd=[];let off=0;
   parts.push(lh.buffer,nm,body);cd.push(ch.buffer,nm);off+=30+nm.length+body.length}
  let cs=0;for(const x of cd)cs+=x.byteLength;const ed=new DataView(new ArrayBuffer(22));ed.setUint32(0,0x06054b50,true);ed.setUint16(8,list.length,true);ed.setUint16(10,list.length,true);ed.setUint32(12,cs,true);ed.setUint32(16,off,true);
  return new Blob([...parts,...cd,ed.buffer],{type:"application/zip"})}
-$("ex").onclick=async()=>{const st=t=>$("st2").textContent=t,d=window.claude?await window.claude.use("downloads"):null;
- if(!d){st("Il download non \u00e8 disponibile in questa vista: apri l\u2019artefatto da claude.ai.");return}
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+$("ex").onclick=async()=>{const st=t=>$("st2").textContent=t;
  st("Preparo i file\u2026");await new Promise(r=>setTimeout(r,50));
  try{const q=prm(),g=gen(q,true),n=($("fn").value.trim()||"orologio").replace(/[^\w\-]+/g,"_");
   const z=await zipM(((g.exp||[["completo",g.all],["piastra",g.MP],["lamelle",g.MB]]).concat([["lancette",hands(q,false)]],q.hg==="t"?[["gambe_treppiedi",props(q,false)]]:[])).map(([k,m])=>({name:n+"_"+k+".stl",data:toSTL(m.V,m.F),deflate:true})));
-  await d.save({filename:n+"_stl.zip",data:z});st("Fatto. Estrai lo ZIP (lancette e gambe del treppiedi sono file separati): "+(g.exp?"un STL completo e uno per ogni colore (importali insieme in Bambu Studio come un unico oggetto con più parti e assegna un filamento a ciascuna).":"tre STL: completo, piastra e lamelle."))}
- catch(e){st(e&&e.code==="declined"?"Download annullato.":"Errore: "+((e&&(e.message||e.code))||e))}};
+  downloadBlob(z, n+"_stl.zip");st("Fatto. Estrai lo ZIP (lancette e gambe del treppiedi sono file separati): "+(g.exp?"un STL completo e uno per ogni colore (importali insieme in Bambu Studio come un unico oggetto con più parti e assegna un filamento a ciascuna).":"tre STL: completo, piastra e lamelle."))}
+ catch(e){st("Errore: "+((e&&(e.message||e.code))||e))}};
 addEventListener("resize",rs);rs();upd();
 </script></body></html>
