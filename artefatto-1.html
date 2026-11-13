@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Generatore di vasi texturizzati</title>
+<style>
+:root{--bg:#1A120E;--fg:#D5C4AE;--card:#3A2418;--mut:#A88462;--ac:#A88462;--bd:#6B4A2E;--gr:#4A4A46;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+
+
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+#app{max-width:1000px;margin:0 auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+h1{font-size:20px;margin:0}h2{font-size:14px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+p{margin:4px 0}.hint{color:var(--mut);font-size:13px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:20}
+#view{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);padding:4px 0 6px}
+#c3{width:100%;height:36vh;min-height:230px;display:block;touch-action:none;border-radius:14px;background:radial-gradient(ellipse at 50% 35%,var(--card),var(--bg));border:1px solid var(--bd);box-sizing:border-box}
+.seg{display:flex;gap:6px;margin-top:6px}.seg button{flex:1;padding:8px 2px;font-size:12px}.seg button.on{background:var(--ac);border-color:var(--ac);color:#1A120E}
+.cc input{height:40px;padding:2px}.row .cc{flex:1;margin:6px 0 0}.ck{grid-template-columns:auto 1fr;align-items:center}.ck input{grid-column:auto;width:auto}
+#cw{position:relative}.sc{margin:6px 0 0}
+textarea{width:100%;box-sizing:border-box;font:12px/1.35 ui-monospace,Menlo,Consolas,monospace;padding:8px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--fg);margin-top:6px}
+#side{display:grid;gap:12px}.card[data-t]{display:none}.card[data-t].on{display:block}#tb{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}#tb button{flex:none;padding:8px 14px;font-size:13px}#tb button.on{background:var(--ac);border-color:var(--ac);color:#1A120E}.zb{position:absolute;right:8px;top:8px;display:grid;gap:6px}.zb button{width:36px;height:36px;padding:0;font-size:18px;line-height:1;opacity:.85}
+#pf{width:100%;height:230px;display:block;touch-action:none}
+label{display:grid;grid-template-columns:1fr auto;gap:2px 8px;margin:10px 0;font-size:14px}
+label input{grid-column:1/3;width:100%;accent-color:var(--ac)}
+output{color:var(--mut);font-variant-numeric:tabular-nums}
+select,button{font:inherit;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--fg);padding:9px 12px}
+select{width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+button{cursor:pointer}button.main{background:var(--ac);border-color:var(--ac);color:#1A120E;font-weight:600;width:100%;padding:13px}
+@media (min-width:860px){#app{display:grid;grid-template-columns:1.1fr 1fr;grid-template-rows:auto 1fr;align-items:start}header,#view{grid-column:1}#view{grid-row:2;top:calc(env(safe-area-inset-top,0px) + 12px)}#side{grid-column:2;grid-row:1/3;display:grid;gap:12px}#c3{height:66vh}}
+</style></head><body>
+<div id="app">
+<header><h1>Generatore di vasi texturizzati</h1><p class="hint">Disegna il profilo, scegli la texture ed esporta per la modalità vaso a spirale.</p></header>
+<section id="view"><div id="cw"><canvas id="c3"></canvas><div class="zb"><button id="zi">+</button><button id="zo">−</button><button id="zr">⌂</button></div></div><div class="seg" id="md"><button data-m="r" class="on">Ruota</button><button data-m="p">Ingrossa</button><button data-m="t">Incava</button><button data-m="s">Liscia</button><button data-m="g">Gabbia</button><button id="un">Annulla</button></div><label class="sc"><span>Percorso di stampa (scorri)</span><output id="osc">100%</output><input type="range" id="sc" min="0" max="100" value="100"></label></section>
+<div id="side"><nav id="tb"><button data-t="f" class="on">Forma</button><button data-t="b">Base</button><button data-t="t">Texture</button><button data-t="o">Onde</button><button data-t="p">Pittura</button><button data-t="x">Speciale</button><button data-t="s">Stampa</button><button data-t="e">Esporta</button></nav>
+<section class="card" data-t="f"><h2>Profilo</h2><canvas id="pf"></canvas>
+<p class="hint">Trascina i punti. Tocca uno spazio vuoto per aggiungerne uno, doppio tocco su un punto per toglierlo.</p>
+<div class="row" id="pre"></div></section>
+<section class="card" data-t="f" id="cgc"><h2>Gabbia 3D</h2><p class="hint">Scegli “Gabbia” sotto l’anteprima, tocca una maniglia e trascinala lungo l’asse scelto: il vaso si deforma e diventa asimmetrico. Trascinando lontano dalle maniglie giri il vaso.</p><div class="seg" id="ax"><button data-a="x">X</button><button data-a="y">Y</button><button data-a="z" class="on">Z</button><button data-a="n">Normale</button></div><label class="ck"><input type="checkbox" id="cr"> Muovi tutto l’anello</label><div class="row"><button id="cu">Annulla gabbia</button><button id="cz">Azzera gabbia</button></div></section>
+<section class="card" data-t="f"><h2>Pennello</h2><p class="hint">Scegli Ingrossa, Incava o Liscia sotto l’anteprima e passa il dito sul vaso. Con Ruota giri il vaso.</p><div id="bl"></div><div class="row"><button id="rz">Azzera sculture</button></div></section>
+<section class="card" data-t="b" id="bc"><h2>Base del vaso</h2><select id="bk"><option value="p" selected>Piena (chiusa)</option><option value="d">Disco con foro</option><option value="r">Raggi</option><option value="w">Ragnatela</option></select>
+<p class="hint">Disco, raggi e ragnatela lasciano il fondo aperto e inseriscono una base strutturale con un foro al centro. Valgono per l’anteprima e per il 3MF (stampa normale): in modalità vaso a spirale la base resta piena.</p><div id="bsl"></div>
+<h2 style="margin-top:14px">Foro centrale</h2><select id="bh"><option value="e" selected>Passaggio per filettatura E27</option><option value="f">Foro filettato personalizzato (femmina)</option></select><div id="hsl"></div>
+<div class="row"><button class="main" id="e4">Esporta pezzo maschio (STL)</button></div>
+<p class="hint">La filettatura femmina è dentro la base (3MF). Il pezzo maschio è un raccordo con flangia e foro passante, con lo stesso passo e il gioco impostato. E27 = diametro 27 mm, passo circa 3,6 mm.</p></section>
+<section class="card" data-t="t"><h2>Texture e parete</h2>
+<select id="ty"><option value="w">Intrecciata (losanghe)</option><option value="h">Elicoidale</option><option value="o">Onde orizzontali</option><option value="b">Nido d’ape</option><option value="c">Fibra di carbonio</option><option value="l">Legno (venatura)</option><option value="r">Nervature verticali</option><option value="m">Mattoni (cestino)</option><option value="s">Scaglie</option><option value="j">Casuale (jitter)</option><option value="x">Nessuna (liscio)</option></select>
+<div id="sl"></div>
+<label class="ck"><input type="checkbox" id="im"> Usa un’immagine come maschera (chiaro = texture)</label><label class="ck"><input type="checkbox" id="ii"> Inverti immagine</label><input type="file" id="ig" accept="image/*" style="margin-top:6px;max-width:100%"></section>
+<section class="card" id="wc" data-t="o"><h2>Onde e bordo</h2><select id="wsh"><option value="s" selected>Seno</option><option value="d">Dente di sega</option><option value="q">Onda quadra</option><option value="j">Casuale (jitter)</option></select><div id="wvl"></div><p class="hint">L’onda sposta la parete in fuori e in dentro; l’ondulazione del bordo alza e abbassa i layer verso la cima, per bordi ondulati.</p></section>
+<section class="card" id="pc" data-t="p"><h2>Pittura</h2><select id="pt"><option value="g" selected>Sfumatura verticale</option><option value="s">Tinta unita</option><option value="h">Strisce orizzontali</option><option value="v">Strisce verticali</option><option value="d">Strisce diagonali</option><option value="k">Scacchi</option><option value="p">Pois</option><option value="z">Zigzag</option><option value="o">Onde</option></select>
+<div class="row"><label class="cc">Colore A<input type="color" id="cA" value="#6B4A2E"></label><label class="cc">Colore B<input type="color" id="cB" value="#D5C4AE"></label></div>
+<div id="pl"></div><label class="ck"><input type="checkbox" id="pm"> Texture solo sulla zona colore B</label>
+<h2 style="margin-top:14px">Scritte e simboli</h2><input type="text" id="tx" placeholder="Scrivi qui (vuoto = nessuna scritta)" style="width:100%;box-sizing:border-box;font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--fg)"><div class="row" id="sy"></div><div class="row"><label class="cc">Colore scritta (C)<input type="color" id="cC" value="#1A120E"></label></div><div id="tl"></div>
+<p class="hint">Lo STL non contiene colori, il 3MF sì: colore A = filamento 1, B = filamento 2, scritta C = filamento 3.</p></section>
+<section class="card" data-t="x" id="spc"><h2>Speciale: luce tra i layer</h2>
+<p class="hint">Il percorso sale a spirale e ondula anche in Z: un giro tocca il precedente solo in alcuni punti e negli altri lascia un vuoto da cui passa la luce. Non passa dallo slicer: si esporta direttamente in G-code per la P1S. Ugello, altezza layer e larghezza linea si impostano nella scheda Stampa.</p>
+<label class="ck"><input type="checkbox" id="spv"> Mostra il percorso speciale nell’anteprima</label>
+<div id="spl"></div>
+<h2 style="margin-top:14px">Materiale e temperature</h2><select id="mt"><option value="pla" selected>PLA</option><option value="petg">PETG</option><option value="abs">ABS / ASA</option></select><div id="mtl"></div>
+<label class="ck"><input type="checkbox" id="lv2" checked> Livellamento automatico (G29) all’avvio</label>
+<h2 style="margin-top:14px">G-code di avvio e di fine (P1S)</h2>
+<textarea id="gs" rows="11">; ===== AVVIO P1S (versione base): sostituiscilo con lo start G-code ufficiale di Bambu Studio se preferisci =====
+M400
+M104 S140
+M140 S{bed_temp}
+G28
+M190 S{bed_temp}
+{bed_leveling}
+G90
+G1 Z10 F600
+G1 X20 Y5 F6000
+M104 S{nozzle_temp}
+M109 S{nozzle_temp}
+M83
+G92 E0
+M220 S100
+M221 S100
+G1 Z0.3 F600
+G1 X100 Y5 E12 F1000
+G1 E-0.8 F1800
+G1 X110 Y5 F6000
+G1 Z5 F600</textarea>
+<textarea id="ge" rows="8">; ===== FINE P1S (versione base) =====
+M400
+M106 S0
+M104 S0
+M140 S0
+G91
+G1 Z{lift} F600
+G90
+M84 X Y E</textarea>
+<p class="hint">Segnaposto: {nozzle_temp}, {bed_temp}, {bed_leveling}, {lift}.</p>
+<pre id="spi" class="hint" style="white-space:pre-line;font:inherit;margin:8px 0"></pre>
+<button class="main" id="eg">Esporta G-code (in ZIP)</button><p class="hint" id="sst"></p>
+<p class="hint">Attenzione: non l’ho provato su una P1S. Fai prima una prova bassa (altezza 20-30 mm), resta accanto alla stampante e tieni pronto lo stop. Il G-code di avvio qui sopra è una versione semplificata, non quella ufficiale Bambu.</p></section>
+<section class="card" id="pr" data-t="s"><h2>Stampante e percorso</h2><div id="prl"></div>
+<label class="ck"><input type="checkbox" id="ws" checked> Parete singola (vaso a spirale) nell’anteprima</label><label class="ck"><input type="checkbox" id="lv" checked> Mostra i layer del percorso</label>
+<pre id="inf" class="hint" style="white-space:pre-line;font:inherit;margin:8px 0 0"></pre></section>
+<section class="card" data-t="e"><label>Nome file<input type="text" id="fn" value="vaso" style="font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--fg)"></label><button id="rt" style="width:100%;margin-bottom:8px">Ripristina tutto</button><button class="main" id="ex">Esporta STL (spirale, un colore)</button><button class="main" id="e3" style="margin-top:8px">Esporta 3MF a colori (AMS)</button><p class="hint" id="st">STL: vaso pieno per la modalità vaso a spirale, un solo colore. 3MF: vaso vuoto con parete reale (spessore del cursore) e colori per l’AMS, da stampare in modalità normale, non a spirale. Estrai lo ZIP prima di aprire il file.</p></section>
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id),cl=(v,a,b)=>Math.min(b,Math.max(a,v));
+const PRE={Morbido:[[0,30],[.15,40],[.5,46],[.75,34],[1,38]],Ampolla:[[0,24],[.2,40],[.45,30],[.7,14],[.85,13],[1,22]],Conico:[[0,28],[.5,38],[1,52]]};
+let P=PRE.Morbido.map(([h,r])=>({h,r}));
+const D=[["H","Altezza (mm)",40,250,1,150],["n","Creste per giro",20,200,1,100],["A","Profondità texture (mm)",0,1.5,.05,.6],["tw","Inclinazione",-2,2,.1,1],["sm","Fondo liscio (% altezza)",0,30,1,8],["wl","Spessore parete (mm)",.8,3,.1,1.2],["ir","Ripetizioni immagine",1,12,1,3]];
+D.forEach(([id,l,mn,mx,st,v])=>{const d=document.createElement("label");d.innerHTML=`<span>${l}</span><output id="o${id}">${v}</output><input id="${id}" type="range" min="${mn}" max="${mx}" step="${st}" value="${v}">`;$("sl").appendChild(d)});
+Object.keys(PRE).forEach(k=>{const b=document.createElement("button");b.textContent=k;b.onclick=()=>{P=PRE[k].map(([h,r])=>({h,r}));upd()};$("pre").appendChild(b)});
+[["br","Raggio pennello (mm)",5,40,1,15],["bs","Forza",.1,1,.05,.5]].forEach(([id,l,mn,mx,st,v])=>{const d=document.createElement("label");d.innerHTML=`<span>${l}</span><output id="o${id}">${v}</output><input id="${id}" type="range" min="${mn}" max="${mx}" step="${st}" value="${v}">`;$("bl").appendChild(d)});
+[["pn","Ripetizioni attorno al vaso",2,40,1,12]].forEach(([id,l,mn,mx,st,v])=>{const d=document.createElement("label");d.innerHTML=`<span>${l}</span><output id="o${id}">${v}</output><input id="${id}" type="range" min="${mn}" max="${mx}" step="${st}" value="${v}">`;$("pl").appendChild(d)});
+[["th","Altezza scritta (mm)",5,60,1,20],["tz","Posizione verticale (%)",0,100,1,50],["ta","Posizione attorno (gradi)",0,360,1,0],["tr","Rilievo scritta (mm)",0,1.5,.05,0]].forEach(([id,l,mn,mx,st,v])=>{const d=document.createElement("label");d.innerHTML=`<span>${l}</span><output id="o${id}">${v}</output><input id="${id}" type="range" min="${mn}" max="${mx}" step="${st}" value="${v}">`;$("tl").appendChild(d)});
+["★","♥","☾","☀","✿","♪","⚓","✦","☮","⚡","✚"].forEach(s=>{const b=document.createElement("button");b.textContent=s;b.onclick=()=>{$("tx").value+=s;upd()};$("sy").appendChild(b)});
+const GT=96,GZ=120;let DF=new Float32Array(GT*GZ),UN=[];
+let TM={k:null,w:1,h:1,a:null};
+function txMask(q,Rm){if(!q.tx.trim())return()=>0;
+ if(TM.k!==q.tx){const c=document.createElement("canvas"),x=c.getContext("2d"),fs=140,fn=`700 ${fs}px system-ui,"Segoe UI Symbol","Apple Symbols",Arial,sans-serif`;x.font=fn;const tw=Math.ceil(x.measureText(q.tx).width)+20;c.width=tw;c.height=Math.round(fs*1.4);
+  x.font=fn;x.textBaseline="middle";x.textAlign="center";x.fillStyle="#000";x.fillText(q.tx,tw/2,c.height/2);
+  const d=x.getImageData(0,0,c.width,c.height).data,a=new Uint8Array(c.width*c.height);for(let i=0;i<a.length;i++)a[i]=d[i*4+3];TM={k:q.tx,w:c.width,h:c.height,a}}
+ const hm=q.th*1.4,wm=Math.min(hm*TM.w/TM.h,6.283185307*Rm*.95),phi=q.ta*Math.PI/180,zc=q.tz/100*q.H,w=TM.w,h=TM.h,a=TM.a;
+ return(T,z)=>{const da=((T-phi+Math.PI)%6.283185307+6.283185307)%6.283185307-Math.PI,u=da*Rm/wm+.5,v=.5-(z-zc)/hm;if(u<0||u>=1||v<0||v>=1)return 0;
+  const X=u*(w-1),Y=v*(h-1),x0=Math.floor(X),y0=Math.floor(Y),fx=X-x0,fy=Y-y0,x1=Math.min(w-1,x0+1),y1=Math.min(h-1,y0+1);
+  return((a[y0*w+x0]*(1-fx)+a[y0*w+x1]*fx)*(1-fy)+(a[y1*w+x0]*(1-fx)+a[y1*w+x1]*fx)*fy)/255}}
+const ss=(a,b,x)=>{x=cl((x-a)/(b-a),0,1);return x*x*(3-2*x)},sq=x=>{const f=x-Math.floor(x);return ss(0,.05,f)*(1-ss(.5,.55,f))},hx=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);
+function patF(q,Rm,H){const N=q.pn,A=6.283185307,p=A*Rm/N,t=q.pt;return(T,z)=>{const u=T/A*N,v=z/p;switch(t){case"g":return z/H;case"h":return sq(v);case"v":return sq(u);case"d":return sq(u+v);case"k":{const a=sq(u),b=sq(v);return a+b-2*a*b}case"p":return 1-ss(.26,.32,Math.hypot(u-Math.floor(u)-.5,v-Math.floor(v)-.5));case"z":return sq(v+Math.abs(u-Math.floor(u)-.5));case"o":return sq(v+.35*Math.sin(u*A));default:return 0}}}
+const TX={
+b:(n,Rm)=>{const s=6.283185307*Rm/n;return(T,Z)=>{const a=T/6.283185307*n,y=Z/s,j0=Math.round(y/.8660254);let d1=9,d2=9;for(let j=j0-1;j<=j0+1;j++){const o=(j&1)*.5,i0=Math.round(a-o),dy=y-j*.8660254;for(let i=i0-1;i<=i0+1;i++){const d=Math.hypot(a-(i+o),dy);if(d<d1){d2=d1;d1=d}else if(d<d2)d2=d}}const t=Math.min(1,(d2-d1)/.2);return 1-2*t*t*(3-2*t)}},
+c:(n,Rm)=>{const nn=Math.max(4,Math.round(n/4)*4),s=6.283185307*Rm/nn;return(T,Z)=>{const u=T/6.283185307*nn,v=Z/s,i=Math.floor(u),j=Math.floor(v),ov=(((i-j)%4)+4)%4<2;return 2*(.15+.85*Math.sin(Math.PI*(ov?u-i:v-j)))-1}},
+l:(n,Rm)=>{const m=Math.max(2,Math.round(n*.35));return(T,Z)=>{const p=m*T+1.4*Math.sin(Z/9+2.1*Math.sin(3*T))+.5*Math.sin(Z/3.3+5*T);return .7*Math.sin(p)+.3*Math.sin(2*p+1)}}};
+const HX=(n,Rm)=>{const s=6.283185307*Rm/n;return(T,Z)=>{const a=T/6.283185307*n,y=Z/s,j0=Math.round(y/.8660254);let d1=9,d2=9;for(let j=j0-1;j<=j0+1;j++){const o=(j&1)*.5,i0=Math.round(a-o),dy=y-j*.8660254;for(let i=i0-1;i<=i0+1;i++){const d=Math.hypot(a-(i+o),dy);if(d<d1){d2=d1;d1=d}else if(d<d2)d2=d}}return[d1,d2]}};
+Object.assign(TX,{r:n=>T=>Math.sin(n*T),
+ m:(n,Rm)=>{const s=6.283185307*Rm/n;return(T,Z)=>{const v=Z/s*2,j=Math.floor(v),u=T/6.283185307*n+(j&1)*.5,fu=u-Math.floor(u),fv=v-j;return 2*ss(0,.1,Math.min(fu,1-fu,Math.min(fv,1-fv)*.5))-1}},
+ s:(n,Rm)=>{const f=HX(n,Rm);return(T,Z)=>1-2*ss(.15,.6,f(T,Z)[0])},
+ j:(n,Rm)=>{const s=6.283185307*Rm/n,h=(i,j)=>{const x=Math.sin(((i%n)+n)%n*127.1+j*311.7)*43758.5453;return x-Math.floor(x)};return(T,Z)=>{const u=T/6.283185307*n,v=Z/s,i=Math.floor(u),j=Math.floor(v),fu=u-i,fv=v-j,a=fu*fu*(3-2*fu),b=fv*fv*(3-2*fv);return 2*((h(i,j)*(1-a)+h(i+1,j)*a)*(1-b)+(h(i,j+1)*(1-a)+h(i+1,j+1)*a)*b)-1}}});
+const rnd=i=>{const s=Math.sin(i*127.1)*43758.5453;return s-Math.floor(s)};
+const WV=(s,x,n)=>{const f=x/6.283185307;if(s==="d")return(f-Math.floor(f))*2-1;if(s==="q")return Math.sin(x)>=0?1:-1;if(s==="j"){const k=Math.floor(f);return Math.sin(x)*(.3+.7*rnd(((k%n)+n)%n))}return Math.sin(x)};
+let IMG=null;
+function imgMask(q,Rm){if(!q.im||!IMG)return()=>1;const{w,h,a}=IMG,tw=6.283185307*Rm/q.ir,th=tw*h/w,inv=q.ii;return(T,z)=>{const u=((T/6.283185307*q.ir)%1+1)%1,v=((z/th)%1+1)%1,x=Math.min(w-1,Math.floor(u*w)),y=Math.min(h-1,Math.floor((1-v)*h)),t=a[y*w+x]/255;return ss(.4,.6,inv?1-t:t)}}
+const mkS=(L,t)=>L.forEach(([id,l,mn,mx,st,v])=>{const d=document.createElement("label");d.innerHTML=`<span>${l}</span><output id="o${id}">${v}</output><input id="${id}" type="range" min="${mn}" max="${mx}" step="${st}" value="${v}">`;$(t).appendChild(d)});
+mkS([["wn","Lobi (onde per giro)",2,24,1,6],["wa","Ampiezza onda (mm)",0,15,.5,0],["wf","Crescita verso l’alto (%)",0,100,1,0],["wt","Torsione (giri)",-2,2,.1,0],["rw","Ondulazione del bordo (mm)",0,20,.5,0]],"wvl");
+mkS([["nz","Diametro ugello (mm)",.2,1,.05,.4],["lh","Altezza layer (mm)",.05,.6,.01,.2],["lw","Larghezza linea (mm)",.2,1.2,.01,.42],["sp","Velocità (mm/s)",20,300,5,80]],"prl");
+mkS([["bt","Spessore base (mm)",1.2,10,.2,3],["bn","Numero di raggi",3,24,1,6],["bw","Larghezza raggi e anelli (mm)",1,8,.2,2.4],["bg","Anelli concentrici (ragnatela)",1,6,1,3],["bm","Larghezza mozzo (mm)",3,15,.5,6]],"bsl");
+mkS([["dn","Diametro nominale (mm), E27 = 27",8,60,.5,27],["tp","Passo filetto (mm), E27 = 3,6",1,6,.1,3.6],["gp","Gioco (mm)",0,1.5,.05,.4],["fl","Lunghezza filetto (mm)",3,30,1,8],["mb","Foro passante del maschio (mm)",0,30,1,8]],"hsl");
+function dsamp(T,u){const a=T/6.283185307*GT,j0=Math.floor(a),fj=a-j0,v=cl(u,0,1)*(GZ-1),i0=Math.min(Math.floor(v),GZ-2),fi=v-i0,ja=((j0%GT)+GT)%GT,jb=(ja+1)%GT,r0=i0*GT,r1=r0+GT;return(DF[r0+ja]*(1-fj)+DF[r0+jb]*fj)*(1-fi)+(DF[r1+ja]*(1-fj)+DF[r1+jb]*fj)*fi}
+const prm=()=>({H:+$("H").value,n:+$("n").value,A:+$("A").value,tw:+$("tw").value,sm:+$("sm").value,ty:$("ty").value,wl:+$("wl").value,cA:$("cA").value,cB:$("cB").value,pt:$("pt").value,pn:+$("pn").value,pm:$("pm").checked,wsh:$("wsh").value,wn:+$("wn").value,wa:+$("wa").value,wf:+$("wf").value/100,wt:+$("wt").value,rw:+$("rw").value,im:$("im").checked,ii:$("ii").checked,ir:+$("ir").value,ws:$("ws").checked,nz:+$("nz").value,lh:+$("lh").value,lw:+$("lw").value,sp:+$("sp").value,bk:$("bk").value,bh:$("bh").value,bt:+$("bt").value,bn:+$("bn").value,bw:+$("bw").value,bg:+$("bg").value,bm:+$("bm").value,dn:+$("dn").value,tp:+$("tp").value,gp:+$("gp").value,fl:+$("fl").value,mb:+$("mb").value,spv:$("spv").checked,lv2:$("lv2").checked,sg:+$("sg").value,sk:+$("sk").value,sf:+$("sf").value,sr:+$("sr").value,vw:+$("vw").value,vf:+$("vf").value,v1:+$("v1").value,vz:+$("vz").value,tn:+$("tn").value,tb:+$("tb").value,fa:+$("fa").value,fr:+$("fr").value,fd:+$("fd").value,tx:$("tx").value,th:+$("th").value,tz:+$("tz").value,ta:+$("ta").value,tr:+$("tr").value,cC:$("cC").value});
+
+// interpolazione monotona del profilo r(h)
+function mk(p){const n=p.length,d=[],m=[];
+ for(let i=0;i<n-1;i++)d[i]=(p[i+1].r-p[i].r)/Math.max(1e-4,p[i+1].h-p[i].h);
+ m[0]=d[0];m[n-1]=d[n-2];
+ for(let i=1;i<n-1;i++)m[i]=d[i-1]*d[i]<=0?0:(d[i-1]+d[i])/2;
+ for(let i=0;i<n-1;i++){if(d[i]===0){m[i]=m[i+1]=0}else{const a=m[i]/d[i],b=m[i+1]/d[i],s=a*a+b*b;if(s>9){const t=3/Math.sqrt(s);m[i]=t*a*d[i];m[i+1]=t*b*d[i]}}}
+ return h=>{h=cl(h,0,1);let k=0;while(k<n-2&&h>p[k+1].h)k++;const dx=Math.max(1e-4,p[k+1].h-p[k].h),t=cl((h-p[k].h)/dx,0,1),t2=t*t,t3=t2*t;
+  return (2*t3-3*t2+1)*p[k].r+(t3-2*t2+t)*dx*m[k]+(-2*t3+3*t2)*p[k+1].r+(t3-t2)*dx*m[k+1]}}
+
+// generazione mesh: coordinate STL (Z verso l'alto)
+function build(Nt,Nz,off,col,nt){
+ const q=prm(),f=mk(P),H=q.H;let Rm=0;for(let i=0;i<=40;i++)Rm+=f(i/40)/41;
+ const k=q.n*q.tw/Rm,sm=q.sm/100*H,n=q.n,pt=patF(q,Rm,H),tm=txMask(q,Rm),imf=imgMask(q,Rm),ca=hx(q.cA),cc=hx(q.cB),cx=hx(q.cC);
+ const tex=nt?()=>0:q.ty==="w"?(T,Z)=>.5*(Math.sin(n*T+k*Z)+Math.sin(n*T-k*Z)):q.ty==="h"?(T,Z)=>Math.sin(n*T+k*Z):q.ty==="o"?(T,Z)=>Math.sin(n*Z/Rm):TX[q.ty]?TX[q.ty](n,Rm):()=>0;
+ const nv=Nz*Nt+2,V=new Float32Array(nv*3),C=col?new Float32Array(nv*3):null,M=new Float32Array(nv),TV=new Float32Array(nv),RD=new Float32Array(CNA*3);
+ for(let i=0;i<Nz;i++){const z=H*i/(Nz-1),r0=f(z/H),s=sm>0?Math.min(1,z/sm):1,e=s*s*(3-2*s),u=z/H;if(cgOn)cgRow(u,RD);
+  for(let j=0;j<Nt;j++){const T=6.283185307*j/Nt,m=pt(T,z),tv=tm(T,z),wv=WV(q.wsh,q.wn*T+q.wt*6.283185307*z/H,q.wn),R=Math.max(1,r0+q.A*e*tex(T,z)*(q.pm&&q.pt!=="s"?m:1)*imf(T,z)*(1-tv)+q.tr*tv+q.wa*(1-q.wf+q.wf*u*u)*wv+dsamp(T,z/H)),o=(i*Nt+j)*3;
+   let Xv=R*Math.cos(T),Yv=R*Math.sin(T),Zv=z-off+q.rw*u*u*wv;if(cgOn){const a=T/6.283185307*CNA,a0=Math.floor(a),ff=a-a0,f2=ff*ff,f3=f2*ff,W0=(-f3+2*f2-ff)/2,W1=(3*f3-5*f2+2)/2,W2=(-3*f3+4*f2+ff)/2,W3=(f3-f2)/2;for(let k=0;k<4;k++){const c=(((a0-1+k)%CNA)+CNA)%CNA*3,wk=k===0?W0:k===1?W1:k===2?W2:W3;Xv+=wk*RD[c];Yv+=wk*RD[c+1];Zv+=wk*RD[c+2]}}V[o]=Xv;V[o+1]=Yv;V[o+2]=Zv;M[o/3]=m;TV[o/3]=tv;
+   if(C){C[o]=(ca[0]+(cc[0]-ca[0])*m)*(1-tv)+cx[0]*tv;C[o+1]=(ca[1]+(cc[1]-ca[1])*m)*(1-tv)+cx[1]*tv;C[o+2]=(ca[2]+(cc[2]-ca[2])*m)*(1-tv)+cx[2]*tv}}}
+ const cb=Nz*Nt,ct=cb+1;V[cb*3+2]=-off;V[ct*3+2]=H-off;
+ if(C){C.set([.62,.55,.8],cb*3);C.set([.95,.4,.18],ct*3)}
+ const F=new Uint32Array(((Nz-1)*Nt*2+2*Nt)*3);let p=0;
+ for(let i=0;i<Nz-1;i++)for(let j=0;j<Nt;j++){const a=i*Nt+j,b=i*Nt+(j+1)%Nt,c=(i+1)*Nt+j,d=(i+1)*Nt+(j+1)%Nt;F[p++]=a;F[p++]=b;F[p++]=d;F[p++]=a;F[p++]=d;F[p++]=c}
+ const to=(Nz-1)*Nt;
+ for(let j=0;j<Nt;j++){const j1=(j+1)%Nt;F[p++]=cb;F[p++]=j1;F[p++]=j;F[p++]=ct;F[p++]=to+j;F[p++]=to+j1}
+ return{V,C,F,M,TV}}
+
+// vista 3D
+const cv=$("c3"),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}),sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(35,1,1,3000),grp=new THREE.Group();
+sc.add(grp);sc.add(new THREE.HemisphereLight(0xffffff,0x887766,.9));
+const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(120,200,160);sc.add(dl);
+const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.55,metalness:0,side:THREE.DoubleSide});
+const LU={uLH:{value:.2},uOn:{value:1},uRev:{value:1e9},uOff:{value:75}};
+mat.onBeforeCompile=sh=>{Object.assign(sh.uniforms,LU);sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec3 vP;").replace("#include <begin_vertex>","#include <begin_vertex>\nvP=position;");sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying vec3 vP;uniform float uLH,uOn,uRev,uOff;").replace("#include <color_fragment>","#include <color_fragment>\nfloat th=atan(vP.y,vP.x)/6.2831853;th=th<0.?th+1.:th;if((vP.z+uOff)/uLH-th>uRev)discard;if(uOn>.5){float ph=fract((vP.z+uOff)/uLH-th);diffuseColor.rgb*=.7+.3*pow(sin(3.14159*ph),.5);}")};
+let mesh=null;grp.rotation.x=.5;
+const draw=()=>R.render(sc,cam);
+function rs(){const w=cv.clientWidth,h=cv.clientHeight;R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();draw()}
+let pick=null;function pickUpd(q){const g=build(72,64,q.H/2,false,true),G=new THREE.BufferGeometry();G.setAttribute("position",new THREE.BufferAttribute(g.V,3));G.setIndex(new THREE.BufferAttribute(g.F,1));if(pick){pick.geometry.dispose();pick.geometry=G}else{pick=new THREE.Mesh(G,new THREE.MeshBasicMaterial({side:THREE.DoubleSide}));pick.rotation.x=-Math.PI/2;pick.visible=false;grp.add(pick)}}
+function hollow(g,Nt,Nz,H,w,ob){const no=Nz*Nt,ib=no+2,i0=ob?0:Math.min(Nz-3,Math.ceil(1.2/H*(Nz-1))),cf=ib+(Nz-i0)*Nt,V=new Float32Array((cf+1)*3),C=new Float32Array((cf+1)*3);
+ V.set(g.V);C.set(g.C);const M2=new Float32Array(cf+1),T2=new Float32Array(cf+1);M2.set(g.M);T2.set(g.TV);
+ for(let i=i0;i<Nz;i++)for(let j=0;j<Nt;j++){const s=(i*Nt+j)*3,d=(ib+(i-i0)*Nt+j)*3,x=g.V[s],y=g.V[s+1],T=6.283185307*j/Nt,ow=Math.min(w,.7*(Math.hypot(x,y)||1));V[d]=x-ow*Math.cos(T);V[d+1]=y-ow*Math.sin(T);V[d+2]=g.V[s+2];M2[d/3]=g.M[s/3];T2[d/3]=g.TV[s/3];C[d]=g.C[s]*.8;C[d+1]=g.C[s+1]*.8;C[d+2]=g.C[s+2]*.8}
+ V[cf*3+2]=g.V[i0*Nt*3+2];C.set([.45,.42,.45],cf*3);
+ const sl=(Nz-1)*Nt*6,nr=Nz-1-i0,F=new Uint32Array(sl+Nt*3+nr*Nt*6+Nt*3+Nt*6);F.set(g.F.subarray(0,sl));let p=sl;
+ for(let i=0;i<nr;i++)for(let j=0;j<Nt;j++){const a=ib+i*Nt+j,b=ib+i*Nt+(j+1)%Nt,c=ib+(i+1)*Nt+j,d=ib+(i+1)*Nt+(j+1)%Nt;F[p++]=a;F[p++]=d;F[p++]=b;F[p++]=a;F[p++]=c;F[p++]=d}
+ const ot=(Nz-1)*Nt,it=ib+nr*Nt;
+ for(let j=0;j<Nt;j++){const j1=(j+1)%Nt;if(ob){F[p++]=j;F[p++]=ib+j1;F[p++]=j1;F[p++]=j;F[p++]=ib+j;F[p++]=ib+j1}else{F[p++]=no;F[p++]=j1;F[p++]=j;F[p++]=cf;F[p++]=ib+j;F[p++]=ib+j1}F[p++]=ot+j;F[p++]=ot+j1;F[p++]=it+j1;F[p++]=ot+j;F[p++]=it+j1;F[p++]=it+j}
+ return{V,C,F,M:M2,TV:T2}}
+let fast=false;function preview(){const q=prm(),Nt=fast?cl(2*q.n,120,300):cl(4*q.n,200,640),Nz=fast?120:260,g=hollow(build(Nt,Nz,q.H/2,true),Nt,Nz,q.H,q.ws?q.lw:q.wl,q.bk!=="p"),G=new THREE.BufferGeometry();
+ G.setAttribute("position",new THREE.BufferAttribute(g.V,3));G.setAttribute("color",new THREE.BufferAttribute(g.C,3));G.setIndex(new THREE.BufferAttribute(g.F,1));G.computeVertexNormals();
+ if(mesh){mesh.geometry.dispose();mesh.geometry=G}else{mesh=new THREE.Mesh(G,mat);mesh.rotation.x=-Math.PI/2;grp.add(mesh)}
+ cam.position.set(0,q.H*.2,Math.max(q.H*1.9,260));cam.lookAt(0,0,0);camD=Math.max(q.H*1.9,260);pickUpd(q);LU.uLH.value=q.lh;LU.uOff.value=q.H/2;LU.uOn.value=$("lv").checked?1:0;if(!fast)infoUpd(g.V,Nt,Nz,q);cgPos();baseUpd(g,Nt,Nz,q);spUpd();scrubUpd()}
+let dr=null,mode="r",sOn=false;
+const marker=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.3,depthWrite:false})),ray=new THREE.Raycaster();marker.visible=false;sc.add(marker);
+function hit(e){const r=cv.getBoundingClientRect();cam.updateMatrixWorld();ray.setFromCamera({x:(e.clientX-r.left)/r.width*2-1,y:-((e.clientY-r.top)/r.height*2-1)},cam);grp.updateMatrixWorld(true);const h=ray.intersectObject(pick)[0];return h?{w:h.point,l:pick.worldToLocal(h.point.clone())}:null}
+function brush(l,rho){const H=+$("H").value,T0=Math.atan2(l.y,l.x),Tp=T0<0?T0+6.283185307:T0,z0=l.z+H/2,R0=Math.max(8,Math.hypot(l.x,l.y)),k=mode==="p"?1:mode==="t"?-1:0,s=+$("bs").value;
+ for(let i=0;i<GZ;i++){const dz=i/(GZ-1)*H-z0;if(Math.abs(dz)>rho)continue;
+  for(let j=0;j<GT;j++){let dt=Math.abs(j/GT*6.283185307-Tp);if(dt>Math.PI)dt=6.283185307-dt;const da=dt*R0;if(da>rho)continue;
+   const d2=(da*da+dz*dz)/(rho*rho);if(d2>=1)continue;const w=(1-d2)*(1-d2),id=i*GT+j;
+   if(k)DF[id]=cl(DF[id]+k*s*w*.8,-30,30);
+   else{let a=0,c=0;for(const[di,dj]of[[1,0],[-1,0],[0,1],[0,-1]]){const ii=i+di;if(ii<0||ii>=GZ)continue;a+=DF[ii*GT+(j+dj+GT)%GT];c++}DF[id]+=(a/c-DF[id])*cl(s*w*.6,0,1)}}}
+ lazy()}
+function sculptMove(e){const h=hit(e);if(!h){marker.visible=false;draw();return}const rho=+$("br").value;marker.visible=true;marker.position.copy(h.w);marker.scale.setScalar(rho);if(sOn)brush(h.l,rho);else draw()}
+let zm=1,pz=1,pd=1,pmid=0,camD=260;const PT=new Map();
+function zoomTo(z){zm=cl(z,.5,6);cam.zoom=zm;cam.updateProjectionMatrix();draw()}
+function pinch(){const [a,b]=[...PT.values()];return[Math.hypot(a[0]-b[0],a[1]-b[1]),(a[1]+b[1])/2]}
+cv.addEventListener("wheel",e=>{e.preventDefault();zoomTo(zm*(e.deltaY<0?1.12:.89))},{passive:false});
+$("zi").onclick=()=>zoomTo(zm*1.25);$("zo").onclick=()=>zoomTo(zm/1.25);$("zr").onclick=()=>{grp.position.y=0;zoomTo(1)};
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);PT.set(e.pointerId,[e.clientX,e.clientY]);if(PT.size===2){[pd,pmid]=pinch();pz=zm;dr=null;if(sOn){sOn=false;fast=false;upd()}return}if(PT.size>2)return;if(mode==="g"){cageDown(e);return}if(mode==="r"){dr=[e.clientX,e.clientY];return}UN.push(DF.slice());if(UN.length>12)UN.shift();sOn=true;fast=true;sculptMove(e)});
+cv.addEventListener("pointermove",e=>{if(PT.has(e.pointerId))PT.set(e.pointerId,[e.clientX,e.clientY]);if(PT.size===2){const [d,mid]=pinch(),H=+$("H").value;zm=cl(pz*d/pd,.5,6);cam.zoom=zm;cam.updateProjectionMatrix();grp.position.y=cl(grp.position.y-(mid-pmid)*2*camD*.315/(cv.clientHeight*zm),-H,H);pmid=mid;draw();return}if(PT.size>2)return;if(mode==="g"){cageMove(e);return}if(mode!=="r"){sculptMove(e);return}if(!dr)return;grp.rotation.y+=(e.clientX-dr[0])*.01;grp.rotation.x=cl(grp.rotation.x+(e.clientY-dr[1])*.01,-.6,1.2);dr=[e.clientX,e.clientY];draw()});
+cv.addEventListener("pointercancel",e=>PT.delete(e.pointerId));cv.addEventListener("pointerup",e=>{PT.delete(e.pointerId);dr=null;cgEnd();if(sOn){sOn=false;fast=false;upd()}marker.visible=false;draw()});cv.addEventListener("pointerleave",()=>{if(!sOn){marker.visible=false;draw()}});
+
+// editor del profilo
+const pf=$("pf"),px=pf.getContext("2d"),RM=70,PAD=14;let PW=0,PH=0,drag=null,lastT=0,lastP=null;
+const sx=()=>(PW/2-PAD)/RM,X=r=>PW/2+r*sx(),Y=h=>PH-PAD-h*(PH-2*PAD);
+function sizePf(){const r=pf.getBoundingClientRect(),d=devicePixelRatio||1;PW=r.width;PH=r.height;pf.width=PW*d;pf.height=PH*d;px.setTransform(d,0,0,d,0,0)}
+function drawPf(){const cs=getComputedStyle(document.documentElement),ac=cs.getPropertyValue("--ac").trim(),bd=cs.getPropertyValue("--bd").trim(),cd=cs.getPropertyValue("--card").trim();
+ px.clearRect(0,0,PW,PH);px.strokeStyle=bd;px.setLineDash([4,4]);px.beginPath();px.moveTo(PW/2,PAD);px.lineTo(PW/2,PH-PAD);px.stroke();px.setLineDash([]);
+ const f=mk(P);px.beginPath();
+ for(let i=0;i<=60;i++){const h=i/60;px.lineTo(X(f(h)),Y(h))}
+ for(let i=60;i>=0;i--){const h=i/60;px.lineTo(PW-X(f(h)),Y(h))}
+ px.closePath();px.globalAlpha=.18;px.fillStyle=ac;px.fill();px.globalAlpha=1;px.strokeStyle=ac;px.lineWidth=2;px.stroke();
+ const HH=+$("H").value,fg=cs.getPropertyValue("--fg").trim();px.font="11px system-ui,sans-serif";P.forEach((p,i)=>{px.beginPath();px.arc(X(p.r),Y(p.h),7,0,6.2832);px.fillStyle=cd;px.fill();px.stroke();px.fillStyle=fg;px.fillText(String.fromCharCode(65+i)+(p===lastP?`  r ${p.r.toFixed(0)} · h ${(p.h*HH).toFixed(0)} mm`:""),X(p.r)+10,Y(p.h)-8)})}
+const pos=e=>{const r=pf.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;return{x:PW/2+Math.abs(x-PW/2),y,r:Math.abs(x-PW/2)/sx(),h:(PH-PAD-y)/(PH-2*PAD)}};
+pf.addEventListener("pointerdown",e=>{const o=pos(e);let best=null,bd=18;
+ P.forEach(p=>{const d=Math.hypot(X(p.r)-o.x,Y(p.h)-o.y);if(d<bd){bd=d;best=p}});
+ const now=Date.now();
+ if(best&&best===lastP&&now-lastT<320&&P.length>2&&best!==P[0]&&best!==P[P.length-1]){P=P.filter(p=>p!==best);lastP=null;upd();return}
+ if(!best){best={h:cl(o.h,.03,.97),r:cl(o.r,5,RM)};P.push(best);P.sort((a,b)=>a.h-b.h)}
+ drag=best;lastP=best;lastT=now;pf.setPointerCapture(e.pointerId);upd()});
+pf.addEventListener("pointermove",e=>{if(!drag)return;const o=pos(e),ends=drag===P[0]||drag===P[P.length-1];
+ drag.r=cl(o.r,5,RM);if(!ends)drag.h=cl(o.h,.02,.98);P.sort((a,b)=>a.h-b.h);upd()});
+pf.addEventListener("pointerup",()=>drag=null);
+
+let tm=0;function upd(){D.forEach(([id])=>$("o"+id).textContent=$(id).value);drawPf();cancelAnimationFrame(tm);tm=requestAnimationFrame(()=>{preview();draw()})}
+$("sl").addEventListener("input",upd);$("ty").addEventListener("change",upd);
+$("bl").addEventListener("input",()=>["br","bs"].forEach(id=>$("o"+id).textContent=$(id).value));
+function lazy(){cancelAnimationFrame(tm);tm=requestAnimationFrame(()=>{preview();draw()})}
+$("md").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="un"){if(UN.length){DF=UN.pop();upd()}return}mode=b.dataset.m;[...$("md").children].forEach(x=>x.classList.toggle("on",x===b));marker.visible=false;cgPos();draw()});
+$("rz").onclick=()=>{UN.push(DF.slice());DF.fill(0);upd()};
+$("pc").addEventListener("input",()=>{["pn","th","tz","ta","tr"].forEach(id=>$("o"+id).textContent=$(id).value);upd()});$("pc").addEventListener("change",upd);
+let rtT=0;$("rt").onclick=function(){const b=this;if(!rtT){b.textContent="Tocca ancora per confermare";rtT=setTimeout(()=>{rtT=0;b.textContent="Ripristina tutto"},3000);return}
+ clearTimeout(rtT);rtT=0;b.textContent="Ripristina tutto";
+ document.querySelectorAll("#app input").forEach(e=>{if(e.type==="checkbox")e.checked=e.defaultChecked;else e.value=e.defaultValue});
+ document.querySelectorAll("#app select").forEach(s=>{s.selectedIndex=Math.max(0,[...s.options].findIndex(o=>o.defaultSelected))});document.querySelectorAll("#app textarea").forEach(t=>{t.value=t.defaultValue});
+ P=PRE.Morbido.map(([h,r])=>({h,r}));DF.fill(0);UN=[];IMG=null;CG.fill(0);cgOn=false;UC=[];csel=-1;cax="z";[...$("ax").children].forEach((x,i)=>x.classList.toggle("on",i===2));mode="r";[...$("md").children].forEach((x,i)=>x.classList.toggle("on",i===0));marker.visible=false;grp.rotation.set(.5,0,0);grp.position.y=0;zoomTo(1);
+ outs();upd()};
+
+// esportazione: STL binario dentro uno ZIP
+function toSTL(V,F){const nt=F.length/3,dv=new DataView(new ArrayBuffer(84+50*nt));dv.setUint32(80,nt,true);let o=84;
+ for(let t=0;t<nt;t++){const a=F[3*t]*3,c=F[3*t+1]*3,e=F[3*t+2]*3,ux=V[c]-V[a],uy=V[c+1]-V[a+1],uz=V[c+2]-V[a+2],vx=V[e]-V[a],vy=V[e+1]-V[a+1],vz=V[e+2]-V[a+2];
+  let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const l=Math.hypot(nx,ny,nz)||1;
+  dv.setFloat32(o,nx/l,true);dv.setFloat32(o+4,ny/l,true);dv.setFloat32(o+8,nz/l,true);o+=12;
+  for(const q of [a,c,e]){dv.setFloat32(o,V[q],true);dv.setFloat32(o+4,V[q+1],true);dv.setFloat32(o+8,V[q+2],true);o+=12}o+=2}
+ return new Uint8Array(dv.buffer)}
+const CT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CT[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+function mkZip(name,u){const nm=new TextEncoder().encode(name),c=crc(u),sz=u.length,L=nm.length,
+ lh=new DataView(new ArrayBuffer(30)),ch=new DataView(new ArrayBuffer(46)),ed=new DataView(new ArrayBuffer(22));
+ lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(12,33,true);lh.setUint32(14,c,true);lh.setUint32(18,sz,true);lh.setUint32(22,sz,true);lh.setUint16(26,L,true);
+ ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(14,33,true);ch.setUint32(16,c,true);ch.setUint32(20,sz,true);ch.setUint32(24,sz,true);ch.setUint16(28,L,true);
+ ed.setUint32(0,0x06054b50,true);ed.setUint16(8,1,true);ed.setUint16(10,1,true);ed.setUint32(12,46+L,true);ed.setUint32(16,30+L+sz,true);
+ return new Blob([lh.buffer,nm,u,ch.buffer,nm,ed.buffer],{type:"application/zip"})}
+const st=t=>$("st").textContent=t;
+$("ex").onclick=async()=>{
+ const d=window.claude?await window.claude.use("downloads"):null;
+ if(!d){st("Il download non è disponibile in questa vista: apri l’artefatto da claude.ai.");return}
+ st("Calcolo il modello ad alta risoluzione…");await new Promise(r=>setTimeout(r,60));
+ try{const q=prm(),g=build(cl(6*q.n,360,1440),cl(Math.ceil(q.H/.25),100,900),0,false);
+  await d.save({filename:fnm()+".zip",data:mkZip(fnm()+".stl",toSTL(g.V,g.F))});
+  st("Fatto. Estrai lo ZIP e importa vaso_texture.stl in Bambu Studio con la modalità vaso a spirale.")}
+ catch(e){st(e&&e.code==="declined"?"Download annullato.":"Errore: "+((e&&(e.message||e.code))||e))}};
+const enc=s=>new TextEncoder().encode(s);
+async function zipM(list){const parts=[],cd=[];let off=0;
+ for(const f of list){const nm=enc(f.name),u=f.data,c=crc(u);let body=u,mt=0;
+  if(f.deflate&&window.CompressionStream){try{const z=new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer());if(z.length<u.length){body=z;mt=8}}catch(e){}}
+  const lh=new DataView(new ArrayBuffer(30)),ch=new DataView(new ArrayBuffer(46));
+  lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(8,mt,true);lh.setUint16(12,33,true);lh.setUint32(14,c,true);lh.setUint32(18,body.length,true);lh.setUint32(22,u.length,true);lh.setUint16(26,nm.length,true);
+  ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(10,mt,true);ch.setUint16(14,33,true);ch.setUint32(16,c,true);ch.setUint32(20,body.length,true);ch.setUint32(24,u.length,true);ch.setUint16(28,nm.length,true);ch.setUint32(42,off,true);
+  parts.push(lh.buffer,nm,body);cd.push(ch.buffer,nm);off+=30+nm.length+body.length}
+ let cs=0;for(const x of cd)cs+=x.byteLength;
+ const ed=new DataView(new ArrayBuffer(22));ed.setUint32(0,0x06054b50,true);ed.setUint16(8,list.length,true);ed.setUint16(10,list.length,true);ed.setUint32(12,cs,true);ed.setUint32(16,off,true);
+ return new Blob([...parts,...cd,ed.buffer],{type:"application/zip"})}
+function to3mf(g){const V=g.V,F=g.F,nv=V.length/3,nt=F.length/3,A=6.283185307,P3=['<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:slic3rpe="http://schemas.slic3r.org/3mf/2017/06"><metadata name="Application">GeneratoreVasi</metadata><resources><object id="1" type="model"><mesh><vertices>\n'];let s="";
+ for(let i=0;i<nv;i++){s+=`<vertex x="${V[3*i].toFixed(3)}" y="${V[3*i+1].toFixed(3)}" z="${V[3*i+2].toFixed(3)}"/>\n`;if((i&8191)===8191){P3.push(s);s=""}}
+ P3.push(s,"</vertices><triangles>\n");s="";
+ for(let t=0;t<nt;t++){const a=F[3*t],b=F[3*t+1],c=F[3*t+2];
+  const k=(g.TV[a]+g.TV[b]+g.TV[c])/3>.5?"0C":(g.M[a]+g.M[b]+g.M[c])/3>.5?"8":"";
+  s+=`<triangle v1="${a}" v2="${b}" v3="${c}"${k?` paint_color="${k}" slic3rpe:mmu_segmentation="${k}"`:""}/>\n`;if((t&8191)===8191){P3.push(s);s=""}}
+ P3.push(s,'</triangles></mesh></object></resources><build><item objectid="1" transform="1 0 0 0 1 0 0 0 1 128 128 0"/></build></model>');return P3}
+const CTX='<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>',RLX='<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>';
+$("e3").onclick=async()=>{
+ const d=window.claude?await window.claude.use("downloads"):null;
+ if(!d){st("Il download non è disponibile in questa vista: apri l’artefatto da claude.ai.");return}
+ st("Calcolo il modello colorato… può richiedere qualche decina di secondi.");await new Promise(r=>setTimeout(r,60));
+ try{const q=prm(),Nt=cl(5*q.n,300,720),Nz=cl(Math.ceil(q.H/.4),100,400),g0=hollow(build(Nt,Nz,0,true),Nt,Nz,q.H,q.wl,q.bk!=="p"),g=q.bk!=="p"?mergeB(g0,baseGeo(g0,Nt,Nz,q.H,q,q.wl)):g0;
+  const model=new Uint8Array(await new Blob(to3mf(g)).arrayBuffer());
+  const t3=await zipM([{name:"[Content_Types].xml",data:enc(CTX)},{name:"_rels/.rels",data:enc(RLX)},{name:"3D/3dmodel.model",data:model,deflate:true}]);
+  const out=await zipM([{name:fnm()+".3mf",data:new Uint8Array(await t3.arrayBuffer())}]);
+  await d.save({filename:fnm()+"_colori.zip",data:out});
+  st("Fatto. Estrai lo ZIP e apri il file 3MF in Bambu Studio: filamento 1 = colore A, 2 = colore B, 3 = scritta.")}
+ catch(e){st(e&&e.code==="declined"?"Download annullato.":"Errore: "+((e&&(e.message||e.code))||e))}};
+const fnm=()=>($("fn").value.trim()||"vaso").replace(/[^\w\-]+/g,"_");
+function infoUpd(V,Nt,Nz,q){const H=q.H,lh=q.lh,lw=q.lw,dz=H/(Nz-1);let L=0,xm=0,ym=0,rs=0,mo=0,pr=0,r0=0;
+ for(let i=0;i<Nz;i++){let p=0,r=0,o=(i*Nt+Nt-1)*3,px=V[o],py=V[o+1];
+  for(let j=0;j<Nt;j++){o=(i*Nt+j)*3;const x=V[o],y=V[o+1];p+=Math.hypot(x-px,y-py);r+=Math.hypot(x,y);px=x;py=y;xm=Math.max(xm,Math.abs(x));ym=Math.max(ym,Math.abs(y))}
+  L+=p*dz/lh;r/=Nt;rs+=r;if(i===0)r0=r;else mo=Math.max(mo,Math.atan((r-pr)/dz)*57.2958);pr=r}
+ const Rm=rs/Nz,pitch=6.283185307*Rm/q.n,tot=L+3*Math.PI*r0*r0/lw,vol=tot*lw*lh,g=vol*1.24/1000,fil=vol/(Math.PI*.875*.875)/1000,sec=tot/q.sp,hh=Math.floor(sec/3600),mm=Math.round(sec%3600/60),X=2*xm,Y=2*ym,w=[];
+ if(q.ty!=="x"&&q.A>0){if(pitch<2*lw)w.push(`Texture troppo fine per questo ugello: passo ${pitch.toFixed(1)} mm, ne servono almeno ${(2*lw).toFixed(1)}`);else if(q.A<lh*.5)w.push("Profondità texture sotto mezzo layer: poco visibile")}
+ if(mo>45)w.push(`Sbalzo di ${mo.toFixed(0)}°: oltre 45° rischi cedimenti`);
+ if(lh>q.nz*.8)w.push("Altezza layer troppo alta per questo ugello");
+ if(lw<q.nz*.9)w.push("Larghezza linea inferiore al diametro dell’ugello");
+ if(X>256||Y>256||H>256)w.push("Non entra nel piatto della P1S (256 mm)");
+ $("inf").textContent=`Layer: ${Math.ceil(H/lh)} · ${X.toFixed(0)} × ${Y.toFixed(0)} × ${H} mm\nPercorso: ${(tot/1000).toFixed(1)} m · tempo circa ${hh?hh+" h ":""}${mm} min\nMateriale: ${g.toFixed(0)} g di PLA (${fil.toFixed(1)} m di filamento)\n`+(w.length?w.map(x=>"⚠ "+x).join("\n"):"✓ Entra nel piatto, nessun problema rilevato")}
+const nm=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),new THREE.MeshBasicMaterial({color:0xffffff}));nm.visible=false;sc.add(nm);
+function scrubUpd(){const q=prm(),p=+$("sc").value/100,NL=q.H/q.lh;$("osc").textContent=Math.round(p*100)+"%";LU.uRev.value=p>=1?1e9:p*NL;
+ if(SP.on&&SP.line&&SP.n){const m=Math.max(2,Math.floor(p*SP.n)),i=(Math.min(SP.n,m)-1)*3;SP.line.geometry.setDrawRange(0,m);grp.updateMatrixWorld(true);const v=new THREE.Vector3(SP.pv[i],SP.pv[i+1],SP.pv[i+2]);SP.line.localToWorld(v);nm.position.copy(v);nm.scale.setScalar(Math.max(1.2,q.nz*3));nm.visible=p<1;draw();return}
+ if(p>=1||!pick){nm.visible=false;draw();return}
+ const Lp=p*NL,t=(Lp-Math.floor(Lp))*6.283185307,zl=Lp*q.lh-q.H/2;grp.updateMatrixWorld(true);
+ const o=pick.localToWorld(new THREE.Vector3(400*Math.cos(t),400*Math.sin(t),zl)),c=pick.localToWorld(new THREE.Vector3(0,0,zl));ray.set(o,c.sub(o).normalize());
+ const h=ray.intersectObject(pick)[0];if(h){nm.position.copy(h.point);nm.scale.setScalar(Math.max(1.2,q.nz*3));nm.visible=true}else nm.visible=false;draw()}
+function outs(){document.querySelectorAll("output").forEach(o=>{const i=$(o.id.slice(1));if(i&&i.type==="range"&&o.id!=="osc")o.textContent=i.value})}
+$("sc").addEventListener("input",scrubUpd);
+$("pr").addEventListener("input",e=>{if(e.target.id==="nz"){const z=+e.target.value;$("lh").value=(Math.round(z*50)/100).toFixed(2);$("lw").value=(z*1.05).toFixed(2)}outs();upd()});
+$("wc").addEventListener("input",()=>{outs();upd()});$("pr").addEventListener("change",upd);$("wc").addEventListener("change",upd);
+$("im").onchange=$("ii").onchange=upd;
+$("ig").onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,256/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.max(1,Math.round(im.width*s));c.height=Math.max(1,Math.round(im.height*s));const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height).data,a=new Uint8Array(c.width*c.height);for(let i=0;i<a.length;i++)a[i]=d[4*i]*.3+d[4*i+1]*.59+d[4*i+2]*.11;IMG={w:c.width,h:c.height,a};$("im").checked=true;upd()};im.src=fr.result};fr.readAsDataURL(f)};
+const CNR=6,CNA=8;let CG=new Float32Array(CNR*CNA*3),cgOn=false,csel=-1,cax="z",cdrag=false,cpt=null,UC=[];
+function cgRow(u,RD){const zr=u*(CNR-1),i0=Math.min(CNR-2,Math.floor(zr)),f=zr-i0,f2=f*f,f3=f2*f,w=[(-f3+2*f2-f)/2,(3*f3-5*f2+2)/2,(-3*f3+4*f2+f)/2,(f3-f2)/2];RD.fill(0);
+ for(let k=0;k<4;k++){const r=cl(i0-1+k,0,CNR-1)*CNA*3;for(let a=0;a<CNA*3;a++)RD[a]+=w[k]*CG[r+a]}}
+const cg3=new THREE.Group();cg3.rotation.x=-Math.PI/2;cg3.visible=false;grp.add(cg3);
+const hmat=new THREE.MeshBasicMaterial({color:0xD5C4AE,depthTest:false,transparent:true,opacity:.9}),hsel=new THREE.MeshBasicMaterial({color:0xffffff,depthTest:false}),hsp=[];
+for(let i=0;i<CNR*CNA;i++){const s=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),hmat);s.renderOrder=5;cg3.add(s);hsp.push(s)}
+const axl=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3(0,0,1)]),new THREE.LineBasicMaterial({color:0xffffff,depthTest:false}));axl.visible=false;axl.renderOrder=6;axl.frustumCulled=false;cg3.add(axl);
+function adir(k){const T=(k%CNA)/CNA*6.283185307;return cax==="x"?new THREE.Vector3(1,0,0):cax==="y"?new THREE.Vector3(0,1,0):cax==="z"?new THREE.Vector3(0,0,1):new THREE.Vector3(Math.cos(T),Math.sin(T),0)}
+function cgPos(){const q=prm(),f=mk(P),r=Math.max(2,q.H/45);cg3.visible=mode==="g";
+ for(let i=0;i<CNR;i++)for(let a=0;a<CNA;a++){const k=i*CNA+a,z=q.H*i/(CNR-1),T=a/CNA*6.283185307,rr=f(z/q.H)+dsamp(T,z/q.H),c=k*3;hsp[k].position.set(rr*Math.cos(T)+CG[c],rr*Math.sin(T)+CG[c+1],z-q.H/2+CG[c+2]);hsp[k].scale.setScalar(r);hsp[k].material=k===csel?hsel:hmat}
+ axl.visible=cg3.visible&&csel>=0;if(axl.visible){const h=hsp[csel].position,d=adir(csel);axl.geometry.setFromPoints([h.clone().addScaledVector(d,-45),h.clone().addScaledVector(d,45)])}}
+function cgHit(e){const r=cv.getBoundingClientRect();let best=-1,bd=30;cg3.updateMatrixWorld(true);cam.updateMatrixWorld();
+ hsp.forEach((s,k)=>{const v=s.position.clone().applyMatrix4(cg3.matrixWorld).project(cam),x=(v.x*.5+.5)*r.width+r.left,y=(-v.y*.5+.5)*r.height+r.top,d=Math.hypot(x-e.clientX,y-e.clientY);if(d<bd){bd=d;best=k}});return best}
+function cageDown(e){const k=cgHit(e);if(k<0){dr=[e.clientX,e.clientY];csel=-1;cgPos();draw();return}csel=k;cdrag=true;cpt=[e.clientX,e.clientY];UC.push(CG.slice());if(UC.length>15)UC.shift();cgPos();draw()}
+function cgMove(k,d,t){const ring=Math.floor(k/CNA),ids=$("cr").checked?Array.from({length:CNA},(_,a)=>ring*CNA+a):[k];
+ ids.forEach(id=>{const dd=cax==="n"?adir(id):d,c=id*3;CG[c]=cl(CG[c]+dd.x*t,-150,150);CG[c+1]=cl(CG[c+1]+dd.y*t,-150,150);CG[c+2]=cl(CG[c+2]+dd.z*t,-150,150)});cgOn=CG.some(v=>v!==0)}
+function cageMove(e){if(cdrag&&csel>=0){cg3.updateMatrixWorld(true);cam.updateMatrixWorld();const r=cv.getBoundingClientRect(),d=adir(csel),a=hsp[csel].position.clone(),b=a.clone().addScaledVector(d,10),
+  pj=v=>{const p=v.clone().applyMatrix4(cg3.matrixWorld).project(cam);return[(p.x*.5+.5)*r.width,(-p.y*.5+.5)*r.height]},p0=pj(a),p1=pj(b),sx=p1[0]-p0[0],sy=p1[1]-p0[1],l2=sx*sx+sy*sy;
+  if(l2>16)cgMove(csel,d,((e.clientX-cpt[0])*sx+(e.clientY-cpt[1])*sy)/l2*10);cpt=[e.clientX,e.clientY];fast=true;lazy();return}
+ if(dr){grp.rotation.y+=(e.clientX-dr[0])*.01;grp.rotation.x=cl(grp.rotation.x+(e.clientY-dr[1])*.01,-.6,1.2);dr=[e.clientX,e.clientY];draw()}}
+function cgEnd(){if(cdrag){cdrag=false;fast=false;upd()}}
+$("ax").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;cax=b.dataset.a;[...$("ax").children].forEach(x=>x.classList.toggle("on",x===b));cgPos();draw()});
+$("cu").onclick=()=>{if(UC.length){CG=UC.pop();cgOn=CG.some(v=>v!==0);upd()}};
+$("cz").onclick=()=>{UC.push(CG.slice());CG.fill(0);cgOn=false;upd()};
+function tab(t){document.querySelectorAll("#side .card").forEach(c=>c.classList.toggle("on",c.dataset.t===t));[...$("tb").children].forEach(b=>b.classList.toggle("on",b.dataset.t===t));if(t==="f"){sizePf();drawPf()}}
+$("tb").addEventListener("click",e=>{const b=e.target.closest("button");if(b)tab(b.dataset.t)});tab("f");
+const prf=u=>u<.05?0:u<.45?(u-.05)/.4:u<.55?1:u<.95?1-(u-.55)/.4:0;
+function solid(Ro,Ri,Nt){const nr=Ro.length,ni=Ri.length,V=new Float32Array((nr+ni)*Nt*3),F=[];Ro.forEach((r,i)=>V.set(r,i*Nt*3));Ri.forEach((r,i)=>V.set(r,(nr+i)*Nt*3));
+ const O=(r,j)=>r*Nt+j%Nt,I=(r,j)=>(nr+r)*Nt+j%Nt;
+ for(let r=0;r<nr-1;r++)for(let j=0;j<Nt;j++){const a=O(r,j),b=O(r,j+1),c=O(r+1,j),d=O(r+1,j+1);F.push(a,b,d,a,d,c)}
+ for(let r=0;r<ni-1;r++)for(let j=0;j<Nt;j++){const a=I(r,j),b=I(r,j+1),c=I(r+1,j),d=I(r+1,j+1);F.push(a,d,b,a,c,d)}
+ for(let j=0;j<Nt;j++)F.push(O(0,j),I(0,j+1),O(0,j+1),O(0,j),I(0,j),I(0,j+1),O(nr-1,j),O(nr-1,j+1),I(ni-1,j+1),O(nr-1,j),I(ni-1,j+1),I(ni-1,j));
+ return{V,F:Uint32Array.from(F)}}
+function box(s,e,hw,z0,z1){const dx=e[0]-s[0],dy=e[1]-s[1],l=Math.hypot(dx,dy)||1,nx=-dy/l*hw,ny=dx/l*hw,Q=[[s[0]-nx,s[1]-ny],[e[0]-nx,e[1]-ny],[e[0]+nx,e[1]+ny],[s[0]+nx,s[1]+ny]],V=new Float32Array(24);
+ Q.forEach((p,i)=>{V.set([p[0],p[1],z0],i*3);V.set([p[0],p[1],z1],(i+4)*3)});
+ return{V,F:Uint32Array.from([0,2,1,0,3,2,4,5,6,4,6,7,0,1,5,0,5,4,1,2,6,1,6,5,2,3,7,2,7,6,3,0,4,3,4,7])}}
+function cat(L){let nv=0,nf=0;L.forEach(p=>{nv+=p.V.length;nf+=p.F.length});const V=new Float32Array(nv),F=new Uint32Array(nf);let ov=0,of=0;L.forEach(p=>{V.set(p.V,ov);for(let i=0;i<p.F.length;i++)F[of+i]=p.F[i]+ov/3;ov+=p.V.length;of+=p.F.length});return{V,F}}
+function baseGeo(h,Nt,Nz,H,q,w){const ib=Nz*Nt+2,rm=Math.min(Nz-3,Math.round(q.bt/2/H*(Nz-1))),T=j=>6.283185307*j/Nt,hv=h.V;
+ let cx=0,cy=0,z0=0;for(let j=0;j<Nt;j++){const o=(ib+j)*3;cx+=hv[o];cy+=hv[o+1];z0+=hv[o+2]}cx/=Nt;cy/=Nt;z0/=Nt;
+ const z1=z0+q.bt,ov=.6*w,B=new Float32Array(Nt*2);
+ for(let j=0;j<Nt;j++){const o=(ib+rm*Nt+j)*3,x=hv[o]-cx,y=hv[o+1]-cy,l=Math.hypot(x,y)||1;B[2*j]=cx+x+x/l*ov;B[2*j+1]=cy+y+y/l*ov}
+ const ring=f=>{const a=new Float32Array(Nt*3);for(let j=0;j<Nt;j++)f(j,a,j*3);return a};
+ const thr=q.bh==="f",pch=q.tp,hh=.4*pch,rM=(t,z)=>{let u=((z-z0)/pch-t/6.283185307)%1;if(u<0)u+=1;return q.dn/2-hh+hh*prf(u)};
+ const rhB=q.dn/2+q.gp,hubT=thr?Math.max(q.bt,q.fl):q.bt,hubR=rhB+q.bm,zr=[];
+ if(thr){const n=Math.max(2,Math.ceil(hubT/(pch/10)));for(let k=0;k<=n;k++)zr.push(z0+hubT*k/n)}else zr.push(z0,z0+hubT);
+ const circ=(r,z)=>ring((j,a,o)=>{const t=T(j);a[o]=cx+r*Math.cos(t);a[o+1]=cy+r*Math.sin(t);a[o+2]=z});
+ const hole=zr.map(z=>ring((j,a,o)=>{const t=T(j),r=thr?rM(t,z)+q.gp:rhB;a[o]=cx+r*Math.cos(t);a[o+1]=cy+r*Math.sin(t);a[o+2]=z}));
+ const S=[solid([circ(hubR,z0),circ(hubR,z0+hubT)],hole,Nt)];
+ const bd=(z,k)=>ring((j,a,o)=>{const x=B[2*j]-cx,y=B[2*j+1]-cy,l=Math.hypot(x,y)||1;a[o]=B[2*j]-x/l*k;a[o+1]=B[2*j+1]-y/l*k;a[o+2]=z});
+ if(q.bk==="d")S.push(solid([bd(z0,0),bd(z1,0)],[circ(hubR-.5,z0),circ(hubR-.5,z1)],Nt));
+ else{S.push(solid([bd(z0,0),bd(z1,0)],[bd(z0,q.bw),bd(z1,q.bw)],Nt));
+  const Bi=j=>{const x=B[2*j]-cx,y=B[2*j+1]-cy,l=Math.hypot(x,y)||1;return[B[2*j]-x/l*q.bw,B[2*j+1]-y/l*q.bw,x/l,y/l]};
+  for(let s=0;s<q.bn;s++){const j=Math.round(s/q.bn*Nt)%Nt,t=T(j),b=Bi(j);S.push(box([cx+(hubR-1)*Math.cos(t),cy+(hubR-1)*Math.sin(t)],[b[0]+b[2],b[1]+b[3]],q.bw/2,z0,z1))}
+  if(q.bk==="w")for(let k=1;k<=q.bg;k++){const f=k/(q.bg+1),pk=(z,s)=>ring((j,a,o)=>{const t=T(j),b=Bi(j),hx=cx+hubR*Math.cos(t),hy=cy+hubR*Math.sin(t),dx=b[0]-hx,dy=b[1]-hy,l=Math.hypot(dx,dy)||1;a[o]=hx+f*dx+dx/l*s;a[o+1]=hy+f*dy+dy/l*s;a[o+2]=z});
+   S.push(solid([pk(z0,q.bw/2),pk(z1,q.bw/2)],[pk(z0,-q.bw/2),pk(z1,-q.bw/2)],Nt))}}
+ return cat(S)}
+function maleGeo(q){const Nt=240,pch=q.tp,hh=.4*pch,Rf=q.dn/2+4,ft=3,L=q.fl,br=Math.min(q.mb/2,q.dn/2-hh-1.5);
+ const rM=(t,z)=>{let u=((z-ft)/pch-t/6.283185307)%1;if(u<0)u+=1;return q.dn/2-hh+hh*prf(u)};
+ const ring=(r,z)=>{const a=new Float32Array(Nt*3);for(let j=0;j<Nt;j++){const t=6.283185307*j/Nt,rr=typeof r==="function"?r(t,z):r;a[3*j]=rr*Math.cos(t);a[3*j+1]=rr*Math.sin(t);a[3*j+2]=z}return a};
+ const zs=[],n=Math.max(2,Math.ceil((L+.5)/(pch/10)));for(let k=0;k<=n;k++)zs.push(ft-.5+(L+.5)*k/n);
+ return cat([solid([ring(Rf,0),ring(Rf,ft)],[ring(Math.max(br,.5),0),ring(Math.max(br,.5),ft)],Nt),solid(zs.map(z=>ring(rM,z)),[ring(Math.max(br,.5),ft-.5),ring(Math.max(br,.5),ft+L)],Nt)])}
+function mergeB(h,b){const nv=h.V.length/3,V=new Float32Array(h.V.length+b.V.length),F=new Uint32Array(h.F.length+b.F.length),M=new Float32Array(nv+b.V.length/3),TV=new Float32Array(nv+b.V.length/3);V.set(h.V);V.set(b.V,h.V.length);F.set(h.F);for(let i=0;i<b.F.length;i++)F[h.F.length+i]=b.F[i]+nv;M.set(h.M);TV.set(h.TV);return{V,F,M,TV}}
+let bmesh=null;
+function baseUpd(g,Nt,Nz,q){if(q.bk==="p"){if(bmesh)bmesh.visible=false;return}
+ const b=baseGeo(g,Nt,Nz,q.H,q,q.ws?q.lw:q.wl),G=new THREE.BufferGeometry(),C=new Float32Array(b.V.length);for(let i=0;i<C.length;i+=3){C[i]=.66;C[i+1]=.52;C[i+2]=.38}
+ G.setAttribute("position",new THREE.BufferAttribute(b.V,3));G.setAttribute("color",new THREE.BufferAttribute(C,3));G.setIndex(new THREE.BufferAttribute(b.F,1));G.computeVertexNormals();
+ if(bmesh){bmesh.geometry.dispose();bmesh.geometry=G;bmesh.visible=true}else{bmesh=new THREE.Mesh(G,mat);bmesh.rotation.x=-Math.PI/2;grp.add(bmesh)}}
+$("bc").addEventListener("input",()=>{outs();upd()});$("bc").addEventListener("change",upd);
+$("e4").onclick=async()=>{const d=window.claude?await window.claude.use("downloads"):null;if(!d){st("Il download non è disponibile in questa vista: apri l’artefatto da claude.ai.");return}
+ try{const b=maleGeo(prm());await d.save({filename:fnm()+"_maschio.zip",data:mkZip(fnm()+"_maschio.stl",toSTL(b.V,b.F))});st("Fatto. Estrai lo STL del pezzo maschio e stampalo con la flangia sul piatto.")}
+ catch(e){st(e&&e.code==="declined"?"Download annullato.":"Errore: "+((e&&(e.message||e.code))||e))}};
+mkS([["sg","Apertura massima tra i layer (mm)",.2,2.5,.05,1],["sk","Onde per giro (più mezza onda)",10,120,1,50],["sf","Strati pieni di fondo",2,8,2,4],["sr","Rampa onde in basso e in alto (mm)",0,15,.5,5],["vw","Velocità delle pareti (mm/s)",10,80,1,30],["vf","Velocità del fondo (mm/s)",20,120,5,50],["v1","Velocità del primo layer (mm/s)",10,50,1,25],["vz","Velocità Z massima (mm/s)",2,30,.5,10]],"spl");
+mkS([["tn","Temperatura ugello (°C)",170,300,1,220],["tb","Temperatura piatto (°C)",0,110,1,55],["fa","Ventola pezzo (%)",0,100,1,100],["fr","Flusso (rapporto)",.8,1.2,.01,.98],["fd","Diametro filamento (mm)",1.7,3,.05,1.75]],"mtl");
+const SP={on:false,line:null,pv:null,n:0};let spT=0;
+function specGen(q){const H=q.H,lh=q.lh,lw=q.lw,k=q.sk+.5,A2=6.283185307,dmin=.9*lh,dmax=lh+q.sg,A=(dmax-dmin)/4,pp=(dmin+dmax)/2,Nt=720,Nz=Math.min(500,Math.ceil(H/.4)),V=build(Nt,Nz,0,false).V;
+ let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,c0x=0,c0y=0,R0=0;
+ for(let i=0;i<Nz*Nt;i++){const x=V[3*i],y=V[3*i+1];if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+ const cx=(x0+x1)/2,cy=(y0+y1)/2;for(let j=0;j<Nt;j++){c0x+=V[3*j]/Nt;c0y+=V[3*j+1]/Nt}for(let j=0;j<Nt;j++)R0+=Math.hypot(V[3*j]-c0x,V[3*j+1]-c0y)/Nt;
+ const xy=(T,z)=>{const u=(T/A2%1+1)%1*Nt,j=Math.floor(u),f=u-j,j1=(j+1)%Nt,v=cl(z/H,0,1)*(Nz-1),i=Math.min(Math.floor(v),Nz-2),g=v-i,a=(i*Nt+j)*3,b=(i*Nt+j1)*3,c=((i+1)*Nt+j)*3,d=((i+1)*Nt+j1)*3;
+  return[(V[a]*(1-f)+V[b]*f)*(1-g)+(V[c]*(1-f)+V[d]*f)*g,(V[a+1]*(1-f)+V[b+1]*f)*(1-g)+(V[c+1]*(1-f)+V[d+1]*f)*g]};
+ const pts=[],kd=[],push=(x,y,z,c)=>{pts.push(x-cx+128,y-cy+128,z);kd.push(c)};
+ const nf=Math.max(2,2*Math.round(q.sf/2)),turns=Math.max(2,Math.round(R0/(.9*lw))),Nf=180,M=turns*Nf;
+ for(let l=0;l<nf;l++){const z=lh*(l+1),inw=l%2===0;for(let s=0;s<=M;s++){const b=xy(A2*(s/Nf),0),sc=inw?1-.97*s/M:.03+.97*s/M;push(c0x+sc*(b[0]-c0x),c0y+sc*(b[1]-c0y),z,l===0?2:0)}}
+ const z0w=lh*(nf+1),ramp=Math.max(q.sr,.01),Ns=Math.max(240,Math.ceil(14*k)),dth=A2/Ns;let zc=z0w,rr=[];
+ for(let n=0;n<700000;n++){const t=n*dth,r=ss(0,1,(zc-z0w)/ramp)*ss(0,1,(H-.2-zc)/ramp);if(zc>H-.2)break;const b=xy(t,Math.min(H,zc));push(b[0],b[1],zc+A*r*Math.sin(k*t),1);zc+=(dmin+r*(pp-dmin))*dth/A2}
+ const N=pts.length/3,P=Float32Array.from(pts),K=Uint8Array.from(kd);
+ let Rm=0;for(let j=0;j<Nt;j+=6)Rm+=Math.hypot(V[(Math.floor(Nz/2)*Nt+j)*3]-c0x,V[(Math.floor(Nz/2)*Nt+j)*3+1]-c0y)/(Nt/6);
+ let mo=0,pr=0;for(let i=0;i<Nz;i++){let r=0;for(let j=0;j<Nt;j+=12)r+=Math.hypot(V[(i*Nt+j)*3]-c0x,V[(i*Nt+j)*3+1]-c0y)/(Nt/12);if(i>0)mo=Math.max(mo,Math.atan((r-pr)/(H/(Nz-1)))*57.2958);pr=r}
+ const veff=Math.min(q.vw,A>0?q.vz*Rm/(A*k):1e9),vzp=A*k*veff/Rm,slope=Math.atan(A*k/Rm)*57.2958,span=Math.PI*Rm/k,kE=((lw-lh)*lh+Math.PI*lh*lh/4)/(Math.PI*(q.fd/2)**2)*q.fr;
+ let Lt=0,T=0,Et=0;for(let i=1;i<N;i++){const L=Math.hypot(P[3*i]-P[3*i-3],P[3*i+1]-P[3*i-2],P[3*i+2]-P[3*i-1]);Lt+=L;Et+=L*kE;T+=L/(K[i]===2?q.v1:K[i]===0?q.vf:veff)}
+ let op=0;for(let i=0;i<360;i++)op+=Math.max(0,pp-2*A*Math.sin(A2*i/360)-lh-.1)/pp/360;
+ const g=Et*Math.PI*(q.fd/2)**2*1.24/1000,min=Math.round(T/60),w=[],wallN=K.reduce((a,b)=>a+(b===1?1:0),0);
+ if(slope>30)w.push(`Inclinazione del percorso ${slope.toFixed(0)}°: rischio che l’ugello urti il pezzo (meglio sotto 30°). Riduci le onde o l’apertura.`);
+ if(span>6)w.push(`Campata tra i punti di contatto ${span.toFixed(1)} mm: troppo lunga per fare ponte. Aumenta le onde per giro.`);
+ if(veff<q.vw-.5)w.push(`Velocità delle pareti ridotta a ${veff.toFixed(0)} mm/s per rispettare il limite Z.`);
+ if(mo>45)w.push(`Sbalzo del profilo di ${mo.toFixed(0)}°: oltre 45° rischi cedimenti.`);
+ if(2*Math.max(x1-cx,cx-x0)>248||2*Math.max(y1-cy,cy-y0)>248||H>235)w.push("Il pezzo non entra nel piatto della P1S con margine.");
+ if(q.bk!=="p")w.push("La base strutturale (disco, raggi, ragnatela) non è inclusa: nel G-code il fondo è pieno.");
+ const info=`Parete: ${(wallN/Ns).toFixed(0)} giri, ampiezza Z ±${A.toFixed(2)} mm, passo medio ${pp.toFixed(2)} mm\nDistanza tra i layer: da ${dmin.toFixed(2)} mm (contatto) a ${dmax.toFixed(2)} mm, apertura media circa ${(op*100).toFixed(0)}%\nPercorso ${(Lt/1000).toFixed(1)} m, tempo circa ${Math.floor(min/60)} h ${min%60} min, filamento ${g.toFixed(0)} g\nVelocità pareti ${veff.toFixed(0)} mm/s, picco Z ${vzp.toFixed(1)} mm/s, inclinazione max ${slope.toFixed(0)}°\nFile G-code circa ${(N*50/1e6).toFixed(1)} MB\n`+(w.length?w.map(x=>"⚠ "+x).join("\n"):"✓ Nessun problema rilevato");
+ return{P,K,N,info,veff,kE,A,pp,k,Ns}}
+function gcodeBlob(q,S){const f3=v=>v.toFixed(3),P=S.P,K=S.K,N=S.N,out=[],fan=Math.round(q.fa*2.55),
+ fill=s=>s.replace(/\{nozzle_temp\}/g,q.tn).replace(/\{bed_temp\}/g,q.tb).replace(/\{bed_leveling\}/g,q.lv2?"G29":"; livellamento disattivato").replace(/\{lift\}/g,Math.max(2,Math.min(30,250-(q.H+3))));
+ out.push("; Vaso speciale non planare - Generatore di vasi",`; ugello ${q.nz} mm, layer ${q.lh} mm, linea ${q.lw} mm, ${$("mt").value.toUpperCase()}`,"; ATTENZIONE: il percorso muove l’asse Z durante la stampa".replace(/[^\x00-\x7F]/g,"'"),fill($("gs").value),"M83","G92 E0",`G1 X${f3(P[0])} Y${f3(P[1])} Z${f3(P[2]+2)} F7200`,`G1 Z${f3(P[2])} F600`,"G1 E0.8 F1800");
+ let fc=0,fo=false;
+ for(let i=1;i<N;i++){const dx=P[3*i]-P[3*i-3],dy=P[3*i+1]-P[3*i-2],dz=P[3*i+2]-P[3*i-1],L=Math.hypot(dx,dy,dz),F=Math.round(60*(K[i]===2?q.v1:K[i]===0?q.vf:S.veff));
+  if(!fo&&K[i]!==2){out.push(`M106 P1 S${fan}`);fo=true}
+  out.push(`G1 X${f3(P[3*i])} Y${f3(P[3*i+1])} Z${f3(P[3*i+2])} E${(L*S.kE).toFixed(4)}`+(F!==fc?` F${F}`:""));fc=F;
+  if(i%4000===0)out.push(`M73 P${Math.floor(100*i/N)}`)}
+ out.push("G1 E-0.8 F1800",fill($("ge").value));
+ return new Blob([out.join("\n")+"\n"],{type:"text/plain"})}
+function spGen(){const q=prm(),S=specGen(q),n=S.N,pv=new Float32Array(n*3),C=new Float32Array(n*3),ca=hx(q.cA),cb=hx(q.cB);
+ for(let i=0;i<n;i++){pv[3*i]=S.P[3*i]-128;pv[3*i+1]=S.P[3*i+1]-128;pv[3*i+2]=S.P[3*i+2]-q.H/2;const u=cl(S.P[3*i+2]/q.H,0,1);C[3*i]=ca[0]+(cb[0]-ca[0])*u;C[3*i+1]=ca[1]+(cb[1]-ca[1])*u;C[3*i+2]=ca[2]+(cb[2]-ca[2])*u}
+ const G=new THREE.BufferGeometry();G.setAttribute("position",new THREE.BufferAttribute(pv,3));G.setAttribute("color",new THREE.BufferAttribute(C,3));
+ if(SP.line){SP.line.geometry.dispose();SP.line.geometry=G}else{SP.line=new THREE.Line(G,new THREE.LineBasicMaterial({vertexColors:true}));SP.line.rotation.x=-Math.PI/2;SP.line.frustumCulled=false;grp.add(SP.line)}
+ SP.line.visible=SP.on;SP.pv=pv;SP.n=n;$("spi").textContent=S.info;scrubUpd()}
+function spUpd(){const q=prm();SP.on=q.spv;if(mesh)mesh.visible=!SP.on;if(bmesh)bmesh.visible=!SP.on&&q.bk!=="p";if(SP.line)SP.line.visible=SP.on;
+ clearTimeout(spT);if(SP.on){if(!fast)spT=setTimeout(spGen,180)}else $("spi").textContent="Attiva l’anteprima per vedere statistiche e avvisi del percorso speciale."}
+$("spc").addEventListener("input",()=>{outs();upd()});$("spc").addEventListener("change",upd);
+$("mt").addEventListener("change",()=>{const v={pla:[220,55,100],petg:[250,70,40],abs:[260,90,0]}[$("mt").value];["tn","tb","fa"].forEach((id,i)=>$(id).value=v[i]);outs()});
+$("eg").onclick=async()=>{const sst=t=>$("sst").textContent=t,d=window.claude?await window.claude.use("downloads"):null;if(!d){sst("Il download non è disponibile in questa vista: apri l’artefatto da claude.ai.");return}
+ sst("Calcolo il percorso e scrivo il G-code… può richiedere qualche secondo.");await new Promise(r=>setTimeout(r,60));
+ try{const q=prm(),S=specGen(q),b=gcodeBlob(q,S),z=await zipM([{name:fnm()+".gcode",data:new Uint8Array(await b.arrayBuffer()),deflate:true}]);await d.save({filename:fnm()+"_gcode.zip",data:z});sst("Fatto. Estrai il file .gcode e copialo sulla scheda SD della P1S. Controllalo prima in un visualizzatore G-code e fai una prova bassa.")}
+ catch(e){sst(e&&e.code==="declined"?"Download annullato.":"Errore: "+((e&&(e.message||e.code))||e))}};
+addEventListener("resize",()=>{sizePf();rs();drawPf()});
+sizePf();rs();upd();
+</script></body></html>
