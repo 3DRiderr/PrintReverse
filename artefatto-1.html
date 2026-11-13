@@ -268,14 +268,22 @@ function mkZip(name,u){const nm=new TextEncoder().encode(name),c=crc(u),sz=u.len
  ed.setUint32(0,0x06054b50,true);ed.setUint16(8,1,true);ed.setUint16(10,1,true);ed.setUint32(12,46+L,true);ed.setUint32(16,30+L+sz,true);
  return new Blob([lh.buffer,nm,u,ch.buffer,nm,ed.buffer],{type:"application/zip"})}
 const st=t=>$("st").textContent=t;
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
 $("ex").onclick=async()=>{
- const d=window.claude?await window.claude.use("downloads"):null;
- if(!d){st("Il download non è disponibile in questa vista: apri l’artefatto da claude.ai.");return}
  st("Calcolo il modello ad alta risoluzione…");await new Promise(r=>setTimeout(r,60));
  try{const q=prm(),g=build(cl(6*q.n,360,1440),cl(Math.ceil(q.H/.25),100,900),0,false);
-  await d.save({filename:fnm()+".zip",data:mkZip(fnm()+".stl",toSTL(g.V,g.F))});
+  downloadBlob(mkZip(fnm()+".stl",toSTL(g.V,g.F)), fnm()+".zip");
   st("Fatto. Estrai lo ZIP e importa vaso_texture.stl in Bambu Studio con la modalità vaso a spirale.")}
- catch(e){st(e&&e.code==="declined"?"Download annullato.":"Errore: "+((e&&(e.message||e.code))||e))}};
+ catch(e){st("Errore: "+((e&&(e.message||e.code))||e))}};
 const enc=s=>new TextEncoder().encode(s);
 async function zipM(list){const parts=[],cd=[];let off=0;
  for(const f of list){const nm=enc(f.name),u=f.data,c=crc(u);let body=u,mt=0;
@@ -296,16 +304,14 @@ function to3mf(g){const V=g.V,F=g.F,nv=V.length/3,nt=F.length/3,A=6.283185307,P3
  P3.push(s,'</triangles></mesh></object></resources><build><item objectid="1" transform="1 0 0 0 1 0 0 0 1 128 128 0"/></build></model>');return P3}
 const CTX='<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>',RLX='<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>';
 $("e3").onclick=async()=>{
- const d=window.claude?await window.claude.use("downloads"):null;
- if(!d){st("Il download non è disponibile in questa vista: apri l’artefatto da claude.ai.");return}
  st("Calcolo il modello colorato… può richiedere qualche decina di secondi.");await new Promise(r=>setTimeout(r,60));
  try{const q=prm(),Nt=cl(5*q.n,300,720),Nz=cl(Math.ceil(q.H/.4),100,400),g0=hollow(build(Nt,Nz,0,true),Nt,Nz,q.H,q.wl,q.bk!=="p"),g=q.bk!=="p"?mergeB(g0,baseGeo(g0,Nt,Nz,q.H,q,q.wl)):g0;
   const model=new Uint8Array(await new Blob(to3mf(g)).arrayBuffer());
   const t3=await zipM([{name:"[Content_Types].xml",data:enc(CTX)},{name:"_rels/.rels",data:enc(RLX)},{name:"3D/3dmodel.model",data:model,deflate:true}]);
   const out=await zipM([{name:fnm()+".3mf",data:new Uint8Array(await t3.arrayBuffer())}]);
-  await d.save({filename:fnm()+"_colori.zip",data:out});
+  downloadBlob(out, fnm()+"_colori.zip");
   st("Fatto. Estrai lo ZIP e apri il file 3MF in Bambu Studio: filamento 1 = colore A, 2 = colore B, 3 = scritta.")}
- catch(e){st(e&&e.code==="declined"?"Download annullato.":"Errore: "+((e&&(e.message||e.code))||e))}};
+ catch(e){st("Errore: "+((e&&(e.message||e.code))||e))}};
 const fnm=()=>($("fn").value.trim()||"vaso").replace(/[^\w\-]+/g,"_");
 function infoUpd(V,Nt,Nz,q){const H=q.H,lh=q.lh,lw=q.lw,dz=H/(Nz-1);let L=0,xm=0,ym=0,rs=0,mo=0,pr=0,r0=0;
  for(let i=0;i<Nz;i++){let p=0,r=0,o=(i*Nt+Nt-1)*3,px=V[o],py=V[o+1];
@@ -399,9 +405,9 @@ function baseUpd(g,Nt,Nz,q){if(q.bk==="p"){if(bmesh)bmesh.visible=false;return}
  G.setAttribute("position",new THREE.BufferAttribute(b.V,3));G.setAttribute("color",new THREE.BufferAttribute(C,3));G.setIndex(new THREE.BufferAttribute(b.F,1));G.computeVertexNormals();
  if(bmesh){bmesh.geometry.dispose();bmesh.geometry=G;bmesh.visible=true}else{bmesh=new THREE.Mesh(G,mat);bmesh.rotation.x=-Math.PI/2;grp.add(bmesh)}}
 $("bc").addEventListener("input",()=>{outs();upd()});$("bc").addEventListener("change",upd);
-$("e4").onclick=async()=>{const d=window.claude?await window.claude.use("downloads"):null;if(!d){st("Il download non è disponibile in questa vista: apri l’artefatto da claude.ai.");return}
- try{const b=maleGeo(prm());await d.save({filename:fnm()+"_maschio.zip",data:mkZip(fnm()+"_maschio.stl",toSTL(b.V,b.F))});st("Fatto. Estrai lo STL del pezzo maschio e stampalo con la flangia sul piatto.")}
- catch(e){st(e&&e.code==="declined"?"Download annullato.":"Errore: "+((e&&(e.message||e.code))||e))}};
+$("e4").onclick=async()=>{
+ try{const b=maleGeo(prm());downloadBlob(mkZip(fnm()+"_maschio.stl",toSTL(b.V,b.F)), fnm()+"_maschio.zip");st("Fatto. Estrai lo STL del pezzo maschio e stampalo con la flangia sul piatto.")}
+ catch(e){st("Errore: "+((e&&(e.message||e.code))||e))}};
 mkS([["sg","Apertura massima tra i layer (mm)",.2,2.5,.05,1],["sk","Onde per giro (più mezza onda)",10,120,1,50],["sf","Strati pieni di fondo",2,8,2,4],["sr","Rampa onde in basso e in alto (mm)",0,15,.5,5],["vw","Velocità delle pareti (mm/s)",10,80,1,30],["vf","Velocità del fondo (mm/s)",20,120,5,50],["v1","Velocità del primo layer (mm/s)",10,50,1,25],["vz","Velocità Z massima (mm/s)",2,30,.5,10]],"spl");
 mkS([["tn","Temperatura ugello (°C)",170,300,1,220],["tb","Temperatura piatto (°C)",0,110,1,55],["fa","Ventola pezzo (%)",0,100,1,100],["fr","Flusso (rapporto)",.8,1.2,.01,.98],["fd","Diametro filamento (mm)",1.7,3,.05,1.75]],"mtl");
 const SP={on:false,line:null,pv:null,n:0};let spT=0;
@@ -450,10 +456,10 @@ function spUpd(){const q=prm();SP.on=q.spv;if(mesh)mesh.visible=!SP.on;if(bmesh)
  clearTimeout(spT);if(SP.on){if(!fast)spT=setTimeout(spGen,180)}else $("spi").textContent="Attiva l’anteprima per vedere statistiche e avvisi del percorso speciale."}
 $("spc").addEventListener("input",()=>{outs();upd()});$("spc").addEventListener("change",upd);
 $("mt").addEventListener("change",()=>{const v={pla:[220,55,100],petg:[250,70,40],abs:[260,90,0]}[$("mt").value];["tn","tb","fa"].forEach((id,i)=>$(id).value=v[i]);outs()});
-$("eg").onclick=async()=>{const sst=t=>$("sst").textContent=t,d=window.claude?await window.claude.use("downloads"):null;if(!d){sst("Il download non è disponibile in questa vista: apri l’artefatto da claude.ai.");return}
+$("eg").onclick=async()=>{const sst=t=>$("sst").textContent=t;
  sst("Calcolo il percorso e scrivo il G-code… può richiedere qualche secondo.");await new Promise(r=>setTimeout(r,60));
- try{const q=prm(),S=specGen(q),b=gcodeBlob(q,S),z=await zipM([{name:fnm()+".gcode",data:new Uint8Array(await b.arrayBuffer()),deflate:true}]);await d.save({filename:fnm()+"_gcode.zip",data:z});sst("Fatto. Estrai il file .gcode e copialo sulla scheda SD della P1S. Controllalo prima in un visualizzatore G-code e fai una prova bassa.")}
- catch(e){sst(e&&e.code==="declined"?"Download annullato.":"Errore: "+((e&&(e.message||e.code))||e))}};
+ try{const q=prm(),S=specGen(q),b=gcodeBlob(q,S),z=await zipM([{name:fnm()+".gcode",data:new Uint8Array(await b.arrayBuffer()),deflate:true}]);downloadBlob(z, fnm()+"_gcode.zip");sst("Fatto. Estrai il file .gcode e copialo sulla scheda SD della P1S. Controllalo prima in un visualizzatore G-code e fai una prova bassa.")}
+ catch(e){sst("Errore: "+((e&&(e.message||e.code))||e))}};
 addEventListener("resize",()=>{sizePf();rs();drawPf()});
 sizePf();rs();upd();
 </script></body></html>
