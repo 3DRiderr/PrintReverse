@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      max-width: 800px;
+      max-width: 900px;
       margin: 40px auto;
       padding: 0 20px;
       background: #f9f9fb;
@@ -16,25 +16,47 @@
     h1 { border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 20px;
       margin-top: 30px;
     }
     .card {
       background: white;
       border: 1px solid #e0e0e0;
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 20px;
       text-decoration: none;
       color: inherit;
+      display: flex;
+      flex-direction: column;
       transition: transform 0.2s, box-shadow 0.2s;
     }
     .card:hover {
       transform: translateY(-3px);
-      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
     }
-    .card h2 { margin-top: 0; font-size: 1.2rem; color: #d97757; }
-    .card p { font-size: 0.95rem; color: #555; margin-bottom: 0; }
+    .preview-box {
+      width: 100%;
+      height: 130px;
+      background: #f0f2f5;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #888;
+      font-size: 0.85rem;
+      border: 1px dashed #d0d5dd;
+      overflow: hidden;
+    }
+    /* Se vuoi mettere un'immagine di anteprima al posto del box grigio, puoi usare un tag img dentro la preview-box */
+    .preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .card h2 { margin: 0 0 8px 0; font-size: 1.15rem; color: #d97757; }
+    .card p { font-size: 0.9rem; color: #555; margin: 0; flex-grow: 1; }
   </style>
 </head>
 <body>
@@ -42,16 +64,32 @@
   <p>Una raccolta interattiva di strumenti, giochi e esperimenti.</p>
 
   <div class="grid">
-    <!-- Primo Artefatto -->
+    <!-- Primo Artefatto: Generatore Vasi -->
     <a href="artefatto-1.html" class="card">
-      <h2>Titolo Primo Artefatto</h2>
-      <p>Breve descrizione di cosa fa questo progetto.</p>
+      <div class="preview-box">
+        <!-- Sostituisci questo testo con <img src="tua-immagine.png" alt="Anteprima"> se preferisci uno screenshot -->
+        <span>Anteprima Generatore Vasi</span>
+      </div>
+      <h2>Generatore Vasi</h2>
+      <p>Strumento interattivo per la creazione e la personalizzazione di vasi in 3D o 2D.</p>
     </a>
 
-    <!-- Secondo Artefatto -->
+    <!-- Secondo Artefatto: Generatore Orologi -->
     <a href="artefatto-2.html" class="card">
-      <h2>Titolo Secondo Artefatto</h2>
-      <p>Descrizione del secondo progetto.</p>
+      <div class="preview-box">
+        <span>Anteprima Generatore Orologi</span>
+      </div>
+      <h2>Generatore Orologi</h2>
+      <p>Un'applicazione per generare quadranti e design di orologi personalizzati.</p>
+    </a>
+
+    <!-- Terzo Artefatto -->
+    <a href="artefatto-3.html" class="card">
+      <div class="preview-box">
+        <span>Anteprima Terzo Artefatto</span>
+      </div>
+      <h2>Titolo Terzo Artefatto</h2>
+      <p>Breve descrizione del terzo progetto che hai caricato.</p>
     </a>
   </div>
 </body>
